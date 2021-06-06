@@ -49,7 +49,7 @@ public class FleetHistoryModPlugin extends BaseModPlugin {
     ShipLogIntel.class,
     OfficerLogIntel.class
   };
-  
+
   private static BattleListener battleListener;
   private static ShipBoughtOrSoldListener shipBoughtOrSoldListener;
   private static OfficerUpdateListener officerUpdateListener;
@@ -59,7 +59,7 @@ public class FleetHistoryModPlugin extends BaseModPlugin {
   public void onGameLoad(boolean newGame) {
 
     log.info("Started fleet history plugin ongameload!");
-    
+
     battleListener = new BattleListener();
     shipBoughtOrSoldListener = new ShipBoughtOrSoldListener();
     officerUpdateListener = new OfficerUpdateListener();
@@ -69,76 +69,88 @@ public class FleetHistoryModPlugin extends BaseModPlugin {
     Global.getSector().addTransientListener(shipBoughtOrSoldListener);
     Global.getSector().getListenerManager().addListener(shipRecoveredListener, true);
     Global.getSector().addTransientScript(officerUpdateListener);
-    
+
     IntelManagerAPI manager = Global.getSector().getIntelManager();
     if (!manager.hasIntelOfClass(FleetSummaryIntel.class)) {
       manager.addIntel(new FleetSummaryIntel());
     }
-  
-    if(newGame) {
-      // set default display options      
-      HashMap<String, Object> pd = U.getPersistentData();
+
+    // set some default display options      
+    HashMap<String, Object> pd = U.getPersistentData();
+    if (!pd.containsKey(U.FLEET_HISTORY_VIEW_MODE)) {
       pd.put(U.FLEET_HISTORY_VIEW_MODE, U.FLEET_HISTORY_VIEW_SHIPS);
-      pd.put(U.LOG_VIEW_MODE_KEY, U.BATTLE_LOG); 
+    }
+    if (!pd.containsKey(U.LOG_VIEW_MODE_KEY)) {
+      pd.put(U.LOG_VIEW_MODE_KEY, U.BATTLE_LOG);
+    }
+    if (!pd.containsKey(U.FLEET_HISTORY_BATTLE_SIZE)) {
       pd.put(U.FLEET_HISTORY_BATTLE_SIZE, 0);
+    }
+    if (!pd.containsKey(U.FLEET_HISTORY_BATTLE_AGE)) {
       pd.put(U.FLEET_HISTORY_BATTLE_AGE, 0);
+    }
+    if (!pd.containsKey(U.FLEET_HISTORY_SHIP_BATTLE_COUNT)) {
       pd.put(U.FLEET_HISTORY_SHIP_BATTLE_COUNT, 0);
+    }
+    if (!pd.containsKey(U.FLEET_HISTORY_SHIP_FP_SCORE)) {
       pd.put(U.FLEET_HISTORY_SHIP_FP_SCORE, 0);
+    }
+    if (!pd.containsKey(U.FLEET_HISTORY_KILL_DISPLAY)) {
       pd.put(U.FLEET_HISTORY_KILL_DISPLAY, U.KILL_DISPLAY_ICONS);
     }
-    
+
     // make sure no leftover data from previous run
     U.clearTempBattleData();
 
   }
-  
+
   @Override
   public void configureXStream(XStream x) {
-    
-    x.alias("FHmain", FleetSummaryIntel.class);    
-    
+
+    x.alias("FHmain", FleetSummaryIntel.class);
+
     x.alias("FHscm", StringCache.class);
     StringCache.alias(x);
-    
+
     x.alias("FH0", BattleRecordIntel.class);
     BattleRecordIntel.alias(x);
 
     x.alias("FH1", ShipLog.class);
     ShipLog.alias(x);
-    
+
     x.alias("FH2", ShipLogEntry.class);
     ShipLogEntry.alias(x);
 
     x.alias("FH3", ShipBattleRecord.class);
     ShipBattleRecord.alias(x);
-    
+
     x.alias("FH4", ShipLogIntel.class);
     ShipLogIntel.alias(x);
-    
+
     x.alias("FH5", BattleRecord.class);
     BattleRecord.alias(x);
-    
+
     x.alias("FH6", ShipInfo.class);
     ShipInfo.alias(x);
 
     x.alias("FH7", ShipTransaction.class);
     ShipTransaction.alias(x);
-    
+
     x.alias("FH8", ShipRecovery.class);
     ShipRecovery.alias(x);
-    
+
     x.alias("FH9", BattleRecordExtraInfo.class);
     BattleRecordExtraInfo.alias(x);
-    
+
     x.alias("FHa", BattleRecordSideInfo.class);
     x.registerConverter(new BattleRecordSideInfoConverter());
-    
+
     x.alias("FHb", BattleRecordSideCount.class);
     BattleRecordSideCount.alias(x);
-    
+
     x.alias("FHc", OfficerLog.class);
     x.registerConverter(new OfficerLogConverter());
-    
+
     x.alias("FHd", OfficerLogIntel.class);
     OfficerLogIntel.alias(x);
 
@@ -172,5 +184,5 @@ public class FleetHistoryModPlugin extends BaseModPlugin {
     log.info("Done clearing fleet history data");
 
   }
-  
+
 }
