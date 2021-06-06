@@ -479,7 +479,7 @@ public class FleetSummaryIntel extends BaseFleetHistoryIntelPlugin {
     shipsToggleIcon.addImage(Global.getSettings().getSpriteName("test", "toggle"), 16, 16, 0);
     table.addUIElement(shipsToggleIcon).rightOfMid(
             shipsTopHeader, 
-            factionShipCountMode.equals(FACTION_SHIPS_DESTROYED) ? -142 : -152
+            factionShipCountMode.equals(FACTION_SHIPS_DESTROYED) ? (width * -0.166f) : (width * -0.178f)
     );
 
     for (int i = 0; i < factionArr.length; i++) {
