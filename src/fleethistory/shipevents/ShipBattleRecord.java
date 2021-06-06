@@ -262,6 +262,10 @@ public class ShipBattleRecord implements ShipEvent {
       return;
     }
     
+    if (this.getKills() == 0 && this.getAssists() == 0) {
+      return;
+    }    
+    
     List<ShipBattleRecordStats> statsList = this.getStats();
     Collections.sort(statsList, new Comparator<ShipBattleRecordStats>() {
       @Override
