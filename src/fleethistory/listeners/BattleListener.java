@@ -49,6 +49,10 @@ public class BattleListener extends BaseCampaignEventListener {
       log.info("autoresolved - will not create battle records");
       return;
     }
+    if(result.getLastCombatDamageData() == null) {
+      log.info("no combat damage data - will not create battle records");
+      return;
+    };
     logCombatResults(result);
     U.getPersistentData().remove(U.MANUAL_BATTLE_INDICATOR);
   }
