@@ -1,9 +1,10 @@
 {
+  
   "plugins": {
     "FHBattleLogger" : "fleethistory.BattleLogger"
   },
   "graphics": {
-    "test": {
+    "fh": {
       "explosion" : "graphics/explosion.png",
       "toggle" : "graphics/toggle.png"
     }
