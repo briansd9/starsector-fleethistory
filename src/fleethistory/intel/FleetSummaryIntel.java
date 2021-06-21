@@ -7,7 +7,6 @@ package fleethistory.intel;
 
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.FactionAPI;
-import com.fs.starfarer.api.ui.Alignment;
 import com.fs.starfarer.api.ui.ButtonAPI;
 import com.fs.starfarer.api.ui.CustomPanelAPI;
 import com.fs.starfarer.api.ui.IntelUIAPI;
@@ -37,36 +36,36 @@ public class FleetSummaryIntel extends BaseFleetHistoryIntelPlugin {
 
   private static final String FLEET_HISTORY_SORT_MODE = "FLEET_HISTORY_SORT_MODE";
   private static final String FLEET_HISTORY_PREFIX = "FH_";
-  private static final String SHIP_NAME = "Ship Name";
-  private static final String BATTLES = "Battles";
-  private static final String KILLS = "Kills";
-  private static final String ASSISTS = "Assists";
-  private static final String FLEET_POINTS = "Total Fleet Points";
+  private static final String SHIP_NAME = U.i18n("ship_name");
+  private static final String BATTLES = U.i18n("battles");
+  private static final String KILLS = U.i18n("kills");
+  private static final String ASSISTS = U.i18n("assists");
+  private static final String FLEET_POINTS = U.i18n("total_fleet_points");
 
   private static final String BATTLE_HISTORY_SORT_MODE = "BATTLE_HISTORY_SORT_MODE";
   private static final String BATTLE_HISTORY_PREFIX = "BH_";
-  private static final String FACTION = "Faction";
+  private static final String FACTION = U.i18n("faction");
   // private static final String BATTLES = "Battles";
-  private static final String WON = "Won";
-  private static final String LOST = "Lost";
-  private static final String TOTAL_BATTLES = "Total";
-  private static final String FRIGATES = "Frigates";
-  private static final String DESTROYERS = "Destroyers";
-  private static final String CRUISERS = "Cruisers";
-  private static final String CAPITAL_SHIPS = "Capitals";
-  private static final String STATIONS = "Stations";
+  private static final String WON = U.i18n("won");
+  private static final String LOST = U.i18n("lost");
+  private static final String TOTAL_BATTLES = U.i18n("total_battles");
+  private static final String FRIGATES = U.i18n("frigates");
+  private static final String DESTROYERS = U.i18n("destroyers");
+  private static final String CRUISERS = U.i18n("cruisers");
+  private static final String CAPITAL_SHIPS = U.i18n("capital_ships");
+  private static final String STATIONS = U.i18n("stations");
   // space at the end is important - for differentiating from TOTAL_BATTLES (this stinks)
-  private static final String TOTAL_SHIPS = "Total ";
-  private static final String TOTAL_FP = "Total FP";
+  private static final String TOTAL_SHIPS = U.i18n("total_ships"); 
+  private static final String TOTAL_FP = U.i18n("total_fp");
 
   private static final String FACTION_SHIP_COUNT_MODE = "FACTION_SHIP_COUNT_MODE";
-  private static final String FACTION_SHIPS_DESTROYED = "Faction Ships Destroyed";
-  private static final String FACTION_SHIPS_LOST_TO = "Ships Lost to Faction";
+  private static final String FACTION_SHIPS_DESTROYED = U.i18n("faction_ships_destroyed");
+  private static final String FACTION_SHIPS_LOST_TO = U.i18n("ships_lost_to_faction");
 
   private static final String OFFICER_HISTORY_SORT_MODE = "OFFICER_HISTORY_SORT_MODE";
   private static final String OFFICER_HISTORY_PREFIX = "OH_";
-  private static final String LEVEL = "Level";
-  private static final String NAME = "Name";
+  private static final String LEVEL = U.i18n("level");
+  private static final String NAME = U.i18n("name");
 //  duplicated from fleet history sort mode
 //  private static final String BATTLES = "Battles";
 //  private static final String KILLS = "Kills";
@@ -206,18 +205,18 @@ public class FleetSummaryIntel extends BaseFleetHistoryIntelPlugin {
     Arrays.sort(shipLogs, new Comparator<ShipLog>() {
       @Override
       public int compare(ShipLog s1, ShipLog s2) {
-        switch (SORT_MODE) {
-          case SHIP_NAME:
-            return REVERSE_MODE * s1.info.getShipName().compareTo(s2.info.getShipName());
-          case BATTLES:
-            return REVERSE_MODE * (s2.getCombats() - s1.getCombats());
-          case KILLS:
-            return REVERSE_MODE * (s2.getKills() - s1.getKills());
-          case ASSISTS:
-            return REVERSE_MODE * (s2.getAssists() - s1.getAssists());
-          case FLEET_POINTS:
-          default:
-            return REVERSE_MODE * (s2.getFleetPointScore() - s1.getFleetPointScore());
+        // can't use switch for these - not constant strings, extracted from settings
+        if(SORT_MODE.equals(SHIP_NAME)) {
+          return REVERSE_MODE * s1.info.getShipName().compareTo(s2.info.getShipName());
+        } else if(SORT_MODE.equals(BATTLES)) {
+          return REVERSE_MODE * (s2.getCombats() - s1.getCombats());
+        } else if(SORT_MODE.equals(KILLS)) {
+          return REVERSE_MODE * (s2.getKills() - s1.getKills());
+        } else if(SORT_MODE.equals(ASSISTS)) {
+          return REVERSE_MODE * (s2.getAssists() - s1.getAssists());
+        } else {
+          // default case - fleet point score
+          return REVERSE_MODE * (s2.getFleetPointScore() - s1.getFleetPointScore());
         }
       }
     });
@@ -350,63 +349,61 @@ public class FleetSummaryIntel extends BaseFleetHistoryIntelPlugin {
       @Override
       public int compare(FactionBattleHistory f1, FactionBattleHistory f2) {
         int retval = 0;
-        switch (SORT_MODE) {
-          case TOTAL_FP:
-            retval = REVERSE_MODE * (f2.totalFleetPoints - f1.totalFleetPoints);
-            if (retval != 0) {
-              return retval;
-            }
-          case TOTAL_SHIPS:
-            retval = REVERSE_MODE * (f2.totalShips - f1.totalShips);
-            if (retval != 0) {
-              return retval;
-            }
-          case TOTAL_BATTLES:
-            retval = REVERSE_MODE * (f2.battles - f1.battles);
-            if (retval != 0) {
-              return retval;
-            }
-          case STATIONS:
-            retval = REVERSE_MODE * (f2.stations - f1.stations);
-            if (retval != 0) {
-              return retval;
-            }
-          case CAPITAL_SHIPS:
-            retval = REVERSE_MODE * (f2.capitalShips - f1.capitalShips);
-            if (retval != 0) {
-              return retval;
-            }
-          case DESTROYERS:
-            retval = REVERSE_MODE * (f2.destroyers - f1.destroyers);
-            if (retval != 0) {
-              return retval;
-            }
-          case CRUISERS:
-            retval = REVERSE_MODE * (f2.cruisers - f1.cruisers);
-            if (retval != 0) {
-              return retval;
-            }
-          case FRIGATES:
-            retval = REVERSE_MODE * (f2.frigates - f1.frigates);
-            if (retval != 0) {
-              return retval;
-            }
-          case WON:
-            retval = REVERSE_MODE * (f2.battlesWon - f1.battlesWon);
-            if (retval != 0) {
-              return retval;
-            }
-          case LOST:
-            retval = REVERSE_MODE * (f2.battlesLost - f1.battlesLost);
-            if (retval != 0) {
-              return retval;
-            }
-          case FACTION:
-          default:
-            String s1 = Global.getSector().getFaction(f1.factionId).getDisplayNameLong();
-            String s2 = Global.getSector().getFaction(f2.factionId).getDisplayNameLong();
-            return REVERSE_MODE * s1.compareToIgnoreCase(s2);
+        if(SORT_MODE.equals(TOTAL_FP)) {
+          retval = REVERSE_MODE * (f2.totalFleetPoints - f1.totalFleetPoints);
+          if (retval != 0) {
+            return retval;
+          }
+        } else if(SORT_MODE.equals(TOTAL_SHIPS)) {
+          retval = REVERSE_MODE * (f2.totalShips - f1.totalShips);
+          if (retval != 0) {
+            return retval;
+          }
+        } else if(SORT_MODE.equals(TOTAL_BATTLES)) {
+          retval = REVERSE_MODE * (f2.battles - f1.battles);
+          if (retval != 0) {
+            return retval;
+          }
+        } else if(SORT_MODE.equals(STATIONS)) {
+          retval = REVERSE_MODE * (f2.stations - f1.stations);
+          if (retval != 0) {
+            return retval;
+          }
+        } else if(SORT_MODE.equals(CAPITAL_SHIPS)) {
+          retval = REVERSE_MODE * (f2.capitalShips - f1.capitalShips);
+          if (retval != 0) {
+            return retval;
+          }
+        } else if(SORT_MODE.equals(DESTROYERS)) {
+          retval = REVERSE_MODE * (f2.destroyers - f1.destroyers);
+          if (retval != 0) {
+            return retval;
+          }
+        } else if(SORT_MODE.equals(CRUISERS)) {
+          retval = REVERSE_MODE * (f2.cruisers - f1.cruisers);
+          if (retval != 0) {
+            return retval;
+          }
+        } else if(SORT_MODE.equals(FRIGATES)) {
+          retval = REVERSE_MODE * (f2.frigates - f1.frigates);
+          if (retval != 0) {
+            return retval;
+          }
+        } else if(SORT_MODE.equals(WON)) {
+          retval = REVERSE_MODE * (f2.battlesWon - f1.battlesWon);
+          if (retval != 0) {
+            return retval;
+          }
+        } else if(SORT_MODE.equals(LOST)) {
+          retval = REVERSE_MODE * (f2.battlesLost - f1.battlesLost);
+          if (retval != 0) {
+            return retval;
+          }
         }
+        // default case - by faction id
+        String s1 = Global.getSector().getFaction(f1.factionId).getDisplayNameLong();
+        String s2 = Global.getSector().getFaction(f2.factionId).getDisplayNameLong();
+        return REVERSE_MODE * s1.compareToIgnoreCase(s2);
       }
     });
 
@@ -470,17 +467,13 @@ public class FleetSummaryIntel extends BaseFleetHistoryIntelPlugin {
     TooltipMakerAPI totalFleetPointsHeader = createTableHeader(table, BATTLE_HISTORY_PREFIX, TOTAL_FP, SORT_MODE.equals(TOTAL_FP), totalFleetPointsWidth);
     table.addUIElement(totalFleetPointsHeader).rightOfBottom(totalShipsHeader, 0);
     
-    TooltipMakerAPI shipsTopHeader = createTableHeader(
-            table, "", factionShipCountMode, false, 
-            frigatesWidth + destroyersWidth + cruisersWidth + capitalShipsWidth + stationsWidth + totalShipsWidth + totalFleetPointsWidth
-    );
-    table.addUIElement(shipsTopHeader).aboveLeft(frigatesHeader, 0);    
+    float topHeaderWidth = frigatesWidth + destroyersWidth + cruisersWidth + capitalShipsWidth + stationsWidth + totalShipsWidth + totalFleetPointsWidth;
+    TooltipMakerAPI shipsTopHeader = createTableHeader(table, "", factionShipCountMode, false, topHeaderWidth);    
+    table.addUIElement(shipsTopHeader).aboveLeft(frigatesHeader, 0);
+    
     TooltipMakerAPI shipsToggleIcon = table.createUIElement(12, 16, false);
-    shipsToggleIcon.addImage(Global.getSettings().getSpriteName("test", "toggle"), 16, 16, 0);
-    table.addUIElement(shipsToggleIcon).rightOfMid(
-            shipsTopHeader, 
-            factionShipCountMode.equals(FACTION_SHIPS_DESTROYED) ? (width * -0.166f) : (width * -0.178f)
-    );
+    shipsToggleIcon.addImage(Global.getSettings().getSpriteName("fh", "toggle"), 16, 16, 0);
+    table.addUIElement(shipsToggleIcon).rightOfMid(shipsTopHeader, -topHeaderWidth * 0.32f);
 
     for (int i = 0; i < factionArr.length; i++) {
 
@@ -568,18 +561,17 @@ public class FleetSummaryIntel extends BaseFleetHistoryIntelPlugin {
       public int compare(OfficerLog o1, OfficerLog o2) {
         OfficerLog.OfficerBattleStats s1 = o1.getStats();
         OfficerLog.OfficerBattleStats s2 = o2.getStats();
-        switch (SORT_MODE) {
-          case NAME:
-            return REVERSE_MODE * o1.getName().compareTo(o2.getName());
-          case BATTLES:
-            return REVERSE_MODE * (s2.battles - s1.battles);
-          case KILLS:
-            return REVERSE_MODE * (s2.kills - s1.kills);
-          case ASSISTS:
-            return REVERSE_MODE * (s2.assists - s1.assists);
-          case FLEET_POINTS:
-          default:
-            return REVERSE_MODE * (s2.fleetPoints - s1.fleetPoints);
+        if(SORT_MODE.equals(NAME)) {
+          return REVERSE_MODE * o1.getName().compareTo(o2.getName());
+        } else if(SORT_MODE.equals(BATTLES)) {
+          return REVERSE_MODE * (s2.battles - s1.battles);
+        } else if(SORT_MODE.equals(KILLS)) {
+          return REVERSE_MODE * (s2.kills - s1.kills);
+        } else if(SORT_MODE.equals(ASSISTS)) {
+          return REVERSE_MODE * (s2.assists - s1.assists);
+        } else {
+          // default case - sort by fleet points
+          return REVERSE_MODE * (s2.fleetPoints - s1.fleetPoints);
         }
       }
     });
@@ -681,13 +673,13 @@ public class FleetSummaryIntel extends BaseFleetHistoryIntelPlugin {
     TooltipMakerAPI battleFiltersHeader = container.createUIElement(250, 25, false);
     battleFiltersHeader.setParaInsigniaVeryLarge();
     battleFiltersHeader.setParaFontColor(Misc.getBasePlayerColor());
-    battleFiltersHeader.addPara("Battle Settings", 3);
+    battleFiltersHeader.addPara(U.i18n("battle_settings_header"), 3);
     container.addUIElement(battleFiltersHeader).inTL(0, 0);
 
     TooltipMakerAPI battleSizeLabel = container.createUIElement(150, 25, false);
     battleSizeLabel.setParaSmallInsignia();
     battleSizeLabel.setParaFontColor(Misc.getBasePlayerColor());
-    battleSizeLabel.addPara("Battle size", 3);
+    battleSizeLabel.addPara(U.i18n("battle_size"), 3);
     container.addUIElement(battleSizeLabel).belowLeft(battleFiltersHeader, 10).setXAlignOffset(25);
 
     TooltipMakerAPI prevComponent = battleSizeLabel;
@@ -711,13 +703,13 @@ public class FleetSummaryIntel extends BaseFleetHistoryIntelPlugin {
       prevComponent = battleSizeBtn;
     }
     TooltipMakerAPI battleSizeDesc = container.createUIElement(width, 0, false);
-    battleSizeDesc.addPara("Only display battles with at least this many total fleet points deployed.", 0);
+    battleSizeDesc.addPara(U.i18n("battle_size_desc"), 0);
     container.addUIElement(battleSizeDesc).belowLeft(battleSizeLabel, 5);
 
     TooltipMakerAPI battleAgeLabel = container.createUIElement(150, 25, false);
     battleAgeLabel.setParaSmallInsignia();
     battleAgeLabel.setParaFontColor(Misc.getBasePlayerColor());
-    battleAgeLabel.addPara("Days ago", 3);
+    battleAgeLabel.addPara(U.i18n("days_ago"), 3);
     container.addUIElement(battleAgeLabel).belowLeft(battleSizeDesc, 15);
     prevComponent = battleAgeLabel;
 
@@ -739,7 +731,7 @@ public class FleetSummaryIntel extends BaseFleetHistoryIntelPlugin {
       prevComponent = battleAgeBtn;
     }
     TooltipMakerAPI battleAgeDesc = container.createUIElement(width, 0, false);
-    battleAgeDesc.addPara("Only display battles within the selected time period (select 0 to show all).", 0);
+    battleAgeDesc.addPara(U.i18n("days_ago_desc"), 0);
     container.addUIElement(battleAgeDesc).belowLeft(battleAgeLabel, 5);
 
     TooltipMakerAPI hideCommandersCheckbox = container.createUIElement(25, 25, false);
@@ -753,7 +745,7 @@ public class FleetSummaryIntel extends BaseFleetHistoryIntelPlugin {
     btn.setChecked(pd.containsKey(U.FLEET_HISTORY_HIDE_COMMANDERS));
     container.addUIElement(hideCommandersCheckbox).belowLeft(battleAgeDesc, 15);
     TooltipMakerAPI hideCommandersDesc = container.createUIElement(width, 25, false);
-    hideCommandersDesc.addPara("Hide commanders section", 5);
+    hideCommandersDesc.addPara(U.i18n("hide_commanders"), 5);
     container.addUIElement(hideCommandersDesc).rightOfMid(hideCommandersCheckbox, 5);
 
     TooltipMakerAPI hideDeployedCheckbox = container.createUIElement(25, 25, false);
@@ -767,7 +759,7 @@ public class FleetSummaryIntel extends BaseFleetHistoryIntelPlugin {
     btn.setChecked(pd.containsKey(U.FLEET_HISTORY_HIDE_DEPLOYED));
     container.addUIElement(hideDeployedCheckbox).belowLeft(hideCommandersCheckbox, 0);
     TooltipMakerAPI hideDeployedDesc = container.createUIElement(width, 25, false);
-    hideDeployedDesc.addPara("Hide deployed forces section", 5);
+    hideDeployedDesc.addPara(U.i18n("hide_deployed"), 5);
     container.addUIElement(hideDeployedDesc).rightOfMid(hideDeployedCheckbox, 5);
 
     TooltipMakerAPI spacer = container.createUIElement(width, 1, false);
@@ -777,13 +769,13 @@ public class FleetSummaryIntel extends BaseFleetHistoryIntelPlugin {
     TooltipMakerAPI shipFiltersHeader = container.createUIElement(450, 25, false);
     shipFiltersHeader.setParaInsigniaVeryLarge();
     shipFiltersHeader.setParaFontColor(Misc.getBasePlayerColor());
-    shipFiltersHeader.addPara("Ship and Officer Settings", 3);
+    shipFiltersHeader.addPara(U.i18n("ship_officer_settings_header"), 3);
     container.addUIElement(shipFiltersHeader).belowLeft(spacer, 15).setXAlignOffset(15);
 
     TooltipMakerAPI shipBattleCountLabel = container.createUIElement(150, 25, false);
     shipBattleCountLabel.setParaSmallInsignia();
     shipBattleCountLabel.setParaFontColor(Misc.getBasePlayerColor());
-    shipBattleCountLabel.addPara("Battles fought", 3);
+    shipBattleCountLabel.addPara(U.i18n("battles_fought"), 3);
     container.addUIElement(shipBattleCountLabel).belowLeft(shipFiltersHeader, 15).setXAlignOffset(20);
     prevComponent = shipBattleCountLabel;
 
@@ -805,13 +797,13 @@ public class FleetSummaryIntel extends BaseFleetHistoryIntelPlugin {
       prevComponent = shipBattleCountBtn;
     }
     TooltipMakerAPI shipBattleCountDesc = container.createUIElement(width, 0, false);
-    shipBattleCountDesc.addPara("Only display ships / officers that have been deployed in at least this many battles.", 0);
+    shipBattleCountDesc.addPara(U.i18n("battles_fought_desc"), 0);
     container.addUIElement(shipBattleCountDesc).belowLeft(shipBattleCountLabel, 5);
 
     TooltipMakerAPI shipScoreLabel = container.createUIElement(150, 25, false);
     shipScoreLabel.setParaSmallInsignia();
     shipScoreLabel.setParaFontColor(Misc.getBasePlayerColor());
-    shipScoreLabel.addPara("Fleet point score", 3);
+    shipScoreLabel.addPara(U.i18n("fleet_point_score"), 3);
     container.addUIElement(shipScoreLabel).belowLeft(shipBattleCountDesc, 15);
     prevComponent = shipScoreLabel;
 
@@ -833,13 +825,13 @@ public class FleetSummaryIntel extends BaseFleetHistoryIntelPlugin {
       prevComponent = shipScoreBtn;
     }
     TooltipMakerAPI shipScoreDesc = container.createUIElement(width, 0, false);
-    shipScoreDesc.addPara("Only display ships / officers that have killed at least this many FP of enemy ships.", 0);
+    shipScoreDesc.addPara(U.i18n("fleet_point_score_desc"), 0);
     container.addUIElement(shipScoreDesc).belowLeft(shipScoreLabel, 5);
 
     TooltipMakerAPI killDisplayLabel = container.createUIElement(150, 25, false);
     killDisplayLabel.setParaSmallInsignia();
     killDisplayLabel.setParaFontColor(Misc.getBasePlayerColor());
-    killDisplayLabel.addPara("Kill count display", 3);
+    killDisplayLabel.addPara(U.i18n("kill_count_display"), 3);
     container.addUIElement(killDisplayLabel).belowLeft(shipScoreDesc, 15);
     prevComponent = killDisplayLabel;
 
@@ -861,7 +853,7 @@ public class FleetSummaryIntel extends BaseFleetHistoryIntelPlugin {
       prevComponent = killDisplayBtn;
     }
     TooltipMakerAPI killDisplayDesc = container.createUIElement(width, 0, false);
-    killDisplayDesc.addPara("Select how to display detailed kill counts in battle logs.", 0);
+    killDisplayDesc.addPara(U.i18n("kill_count_display_desc"), 0);
     container.addUIElement(killDisplayDesc).belowLeft(killDisplayLabel, 5);
 
     TooltipMakerAPI hideInactiveCheckbox = container.createUIElement(25, 25, false);
@@ -874,12 +866,12 @@ public class FleetSummaryIntel extends BaseFleetHistoryIntelPlugin {
     );
     btn.setChecked(pd.containsKey(U.FLEET_HISTORY_HIDE_INACTIVE));
     hideInactiveCheckbox.addTooltipToPrevious(
-            new ButtonTooltip("If checked, ships and officers not currently in your fleet (in storage / unassigned / lost in battle) will be hidden.", 350),
+            new ButtonTooltip(U.i18n("hide_inactive_desc"), 350),
             TooltipMakerAPI.TooltipLocation.BELOW
     );
     container.addUIElement(hideInactiveCheckbox).belowLeft(killDisplayDesc, 15);
     TooltipMakerAPI hideInactiveDesc = container.createUIElement(width, 25, false);
-    hideInactiveDesc.addPara("Hide inactive", 5);
+    hideInactiveDesc.addPara(U.i18n("hide_inactive"), 5);
     container.addUIElement(hideInactiveDesc).rightOfMid(hideInactiveCheckbox, 5);
 
     spacer = container.createUIElement(width, 1, false);
@@ -887,10 +879,10 @@ public class FleetSummaryIntel extends BaseFleetHistoryIntelPlugin {
     container.addUIElement(spacer).belowLeft(hideInactiveDesc, 25).setXAlignOffset(-70);
 
     TooltipMakerAPI clearDataBtn = container.createUIElement(150, 25, false);
-    clearDataBtn.addAreaCheckbox("Clear all data", U.FLEET_HISTORY_CLEAR_ALL, Misc.getNegativeHighlightColor(), Color.decode("#442200"), Misc.getNegativeHighlightColor(), 150, 25, 0);
+    clearDataBtn.addAreaCheckbox(U.i18n("clear_all_data"), U.FLEET_HISTORY_CLEAR_ALL, Misc.getNegativeHighlightColor(), Color.decode("#442200"), Misc.getNegativeHighlightColor(), 150, 25, 0);
     container.addUIElement(clearDataBtn).belowLeft(spacer, 25).setXAlignOffset(15);
     TooltipMakerAPI clearDataInfo = container.createUIElement(width * 0.75f, 0, false);
-    clearDataInfo.addPara("Deletes all stored fleet history data, and prevents any further data from being logged for this play session. This allows the mod to be safely disabled.", 0);
+    clearDataInfo.addPara(U.i18n("clear_all_data_desc"), 0);
     container.addUIElement(clearDataInfo).rightOfMid(clearDataBtn, 15);
 
     t.addCustom(container, 0);
@@ -910,9 +902,9 @@ public class FleetSummaryIntel extends BaseFleetHistoryIntelPlugin {
       return;
     }
 
-    prompt.addPara("All fleet history will be removed. %s", 0, Misc.getHighlightColor(), "This cannot be undone!");
+    prompt.addPara(U.i18n("clear_prompt_1"), 0, Misc.getHighlightColor(), U.i18n("clear_prompt_2"));
     prompt.addPara("", 0);
-    prompt.addPara("Do you want to proceed?", 0);
+    prompt.addPara(U.i18n("clear_prompt_3"), 0);
 
   }
 
@@ -992,46 +984,43 @@ public class FleetSummaryIntel extends BaseFleetHistoryIntelPlugin {
 
     } else {    
       
-      switch (buttonId) {
-        case U.FLEET_HISTORY_VIEW_SHIPS:
-        case U.FLEET_HISTORY_VIEW_BATTLES:
-        case U.FLEET_HISTORY_VIEW_OFFICERS:
-          pd.put(U.FLEET_HISTORY_VIEW_MODE, buttonId);
-          pd.remove(U.FLEET_HISTORY_CONFIG);
-          break;
-        case U.FLEET_HISTORY_CONFIG:
-          pd.put(U.FLEET_HISTORY_CONFIG, 1);
-          break;
-        case U.FLEET_HISTORY_HIDE_COMMANDERS:
-        case U.FLEET_HISTORY_HIDE_DEPLOYED:
-          if (!pd.containsKey(buttonId)) {
-            pd.put(buttonId, true);
-          } else {
-            pd.remove(buttonId);
-          }
-          break;
-        case U.FLEET_HISTORY_HIDE_INACTIVE:
-          if (!pd.containsKey(buttonId)) {
-            pd.put(buttonId, true);
-          } else {
-            pd.remove(buttonId);
-          }
-          pd.put(U.FLEET_HISTORY_VIEW_MODE, U.FLEET_HISTORY_VIEW_SHIPS);
-          break;
-        case U.KILL_DISPLAY_ICONS:
-        case U.KILL_DISPLAY_TABLE:
-        case U.KILL_DISPLAY_NONE:
-          pd.put(U.FLEET_HISTORY_KILL_DISPLAY, buttonId);
-          break;
-        case FACTION_SHIPS_LOST_TO:
-          pd.put(FACTION_SHIP_COUNT_MODE, FACTION_SHIPS_DESTROYED);
-          break;
-        case FACTION_SHIPS_DESTROYED:
-          pd.put(FACTION_SHIP_COUNT_MODE, FACTION_SHIPS_LOST_TO);
-          break;
-        case BATTLES:
-          // do nothing - just recreate intel UI so header button doesn't toggle
-          break;
+      // if faction header clicked, toggle between modes
+      if(buttonId.equals(FACTION_SHIPS_LOST_TO)) {
+        pd.put(FACTION_SHIP_COUNT_MODE, FACTION_SHIPS_DESTROYED);
+      } else if(buttonId.equals(FACTION_SHIPS_DESTROYED)) {
+        pd.put(FACTION_SHIP_COUNT_MODE, FACTION_SHIPS_LOST_TO);
+      } else if(buttonId.equals(U.KILL_DISPLAY_ICONS) || buttonId.equals(U.KILL_DISPLAY_TABLE) || buttonId.equals(U.KILL_DISPLAY_NONE)) {
+        pd.put(U.FLEET_HISTORY_KILL_DISPLAY, buttonId);
+      } else if(buttonId.equals(BATTLES)) {
+        // do nothing - just recreate intel UI so header button doesn't activate
+      } else {
+        switch (buttonId) {
+          case U.FLEET_HISTORY_VIEW_SHIPS:
+          case U.FLEET_HISTORY_VIEW_BATTLES:
+          case U.FLEET_HISTORY_VIEW_OFFICERS:
+            pd.put(U.FLEET_HISTORY_VIEW_MODE, buttonId);
+            pd.remove(U.FLEET_HISTORY_CONFIG);
+            break;
+          case U.FLEET_HISTORY_CONFIG:
+            pd.put(U.FLEET_HISTORY_CONFIG, 1);
+            break;
+          case U.FLEET_HISTORY_HIDE_COMMANDERS:
+          case U.FLEET_HISTORY_HIDE_DEPLOYED:
+            if (!pd.containsKey(buttonId)) {
+              pd.put(buttonId, true);
+            } else {
+              pd.remove(buttonId);
+            }
+            break;
+          case U.FLEET_HISTORY_HIDE_INACTIVE:
+            if (!pd.containsKey(buttonId)) {
+              pd.put(buttonId, true);
+            } else {
+              pd.remove(buttonId);
+            }
+            pd.put(U.FLEET_HISTORY_VIEW_MODE, U.FLEET_HISTORY_VIEW_SHIPS);
+            break;
+        }
       }
       
     }
@@ -1057,13 +1046,13 @@ public class FleetSummaryIntel extends BaseFleetHistoryIntelPlugin {
   @Override
   public void createIntelInfo(TooltipMakerAPI t, ListInfoMode mode) {
     t.setParaInsigniaLarge();
-    t.addPara("Fleet Action History", Global.getSector().getPlayerFaction().getBrightUIColor(), 0);
+    t.addPara(U.i18n("base_intel_item_header"), Global.getSector().getPlayerFaction().getBrightUIColor(), 0);
   }
 
   @Override
   public Set<String> getIntelTags(SectorMapAPI map) {
     Set<String> tags = super.getIntelTags(map);
-    tags.add("Fleet Action History");
+    tags.add(U.i18n("intel_category_tag"));
     return tags;
   }
 

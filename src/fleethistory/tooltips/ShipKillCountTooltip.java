@@ -66,12 +66,12 @@ public class ShipKillCountTooltip implements TooltipMakerAPI.TooltipCreator {
     tooltip.addSpacer(U.LINE_SPACING);
 
     if (this.kills > 0) {
-      tooltip.addPara("%s kill" + (this.kills > 1 ? "s" : ""), 0, Misc.getNegativeHighlightColor(), this.kills + "");
+      tooltip.addPara(U.i18n(this.kills == 1 ? "kill_count" : "kills_count"), 0, Misc.getNegativeHighlightColor(), this.kills + "");
     }
     if (this.assists > 0) {
-      tooltip.addPara("%s assist" + (this.assists > 1 ? "s" : ""), 0, Misc.getHighlightColor(), this.assists + "");
+      tooltip.addPara(U.i18n(this.kills == 1 ? "assist_count" : "assists_count"), 0, Misc.getHighlightColor(), this.assists + "");
     }
-    tooltip.addPara("%s total fleet points", 0, Misc.getBrightPlayerColor(), this.fleetPoints + "");
+    tooltip.addPara(U.i18n("shipkillcount_tooltip_total_fp"), 0, Misc.getBrightPlayerColor(), this.fleetPoints + "");
 
     Description d = Global.getSettings().getDescription(this.hull.getDescriptionId(), Description.Type.SHIP);
     if (d != null && d.getText1FirstPara() != null && !d.getText1FirstPara().startsWith("No description")) {

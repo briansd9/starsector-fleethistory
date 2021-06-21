@@ -58,28 +58,28 @@ public class ShipTransaction implements ShipEvent {
 
     if (this.action.equals(ADDED) && p > 0) {
       t.addPara(
-              "Bought %s %s for %s",
+              U.i18n("ship_bought"),
               U.LINE_SPACING,
               new Color[] { Misc.getTextColor(), Misc.getHighlightColor(), Misc.getHighlightColor() },
               new String[] { this.onOrAt, this.getLocation(), Misc.getDGSCredits(p) + "" }
       );
     } else if (this.action.equals(REMOVED) && p > 0) {
       t.addPara(
-              "Sold %s %s for %s",
+              U.i18n("ship_sold"),
               U.LINE_SPACING,
               new Color[] { Misc.getTextColor(), Misc.getHighlightColor(), Misc.getHighlightColor() },
               new String[] { this.onOrAt, this.getLocation(), Misc.getDGSCredits(p) + "" }
       );
     } else if (this.action.equals(ADDED) && p == 0) {
       t.addPara(
-              "Retrieved from %s",
+              U.i18n("ship_retrieved"),
               U.LINE_SPACING,
               Misc.getHighlightColor(),
               this.getLocation()
       );
     } else if (this.action.equals(REMOVED) && p == 0) {
       t.addPara(
-              "Stored %s %s",
+              U.i18n("ship_stored"),
               U.LINE_SPACING,
               new Color[] { Misc.getTextColor(), Misc.getHighlightColor() },
               new String[] { this.onOrAt, this.getLocation() }

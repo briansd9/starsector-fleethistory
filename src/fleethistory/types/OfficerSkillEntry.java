@@ -70,7 +70,7 @@ public class OfficerSkillEntry extends OfficerLogEntry {
     List<String> skillNameArray = new ArrayList<>();
 
     if (this.getLevel() > 0) {
-      info.addPara("Level %s", 0, Misc.getHighlightColor(), this.getLevel() + "");
+      info.addPara(U.i18n("officer_level"), 0, Misc.getHighlightColor(), this.getLevel() + "");
     }
     if (!this.getSkills().isEmpty()) {
       StringBuilder skillFmtString = new StringBuilder();
@@ -80,7 +80,7 @@ public class OfficerSkillEntry extends OfficerLogEntry {
         SkillSpecAPI skill = Global.getSettings().getSkillSpec(skillId.replace("ELITE_", ""));
         if (skill != null) {
           skillFmtString.append(skillFmtString.length() > 0 ? ", " : "").append("%s");
-          skillNameArray.add(skill.getName() + (isElite ? " (elite)" : ""));
+          skillNameArray.add(skill.getName() + (isElite ? U.i18n("elite_skill_suffix") : ""));
         }
       }
 
@@ -90,7 +90,7 @@ public class OfficerSkillEntry extends OfficerLogEntry {
         }
         skillNameArray.add(0, skillNameArray.size() + "");
         info.addPara(
-                "Gained %s new skill" + (skillNameArray.size() > 2 ? "s" : "") + ": " + skillFmtString.toString(),
+                U.i18n(skillNameArray.size() == 2 ? "officer_skill_gained" : "officer_skills_gained") + ": " + skillFmtString.toString(),
                 0,
                 Misc.getHighlightColor(),
                 skillNameArray.toArray(new String[skillNameArray.size()])

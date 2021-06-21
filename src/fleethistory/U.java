@@ -26,6 +26,9 @@ import fleethistory.types.BattleRecord;
 import fleethistory.types.OfficerLog;
 import fleethistory.types.ShipEvent;
 import fleethistory.types.ShipLogEntry.EventType;
+import java.util.Locale;
+import java.util.Properties;
+import java.util.ResourceBundle;
 
 /**
  *
@@ -64,9 +67,9 @@ public class U {
   public static final String FLEET_HISTORY_SHIP_BATTLE_COUNT = "FLEET_HISTORY_SHIP_BATTLE_COUNT";
   public static final String FLEET_HISTORY_SHIP_FP_SCORE = "FLEET_HISTORY_SHIP_FP_SCORE";
   public static final String FLEET_HISTORY_KILL_DISPLAY = "FLEET_HISTORY_KILL_DISPLAY";
-  public static final String KILL_DISPLAY_ICONS = "Icons";
-  public static final String KILL_DISPLAY_TABLE = "Table";
-  public static final String KILL_DISPLAY_NONE = "None";
+  public static final String KILL_DISPLAY_ICONS = U.i18n("kill_count_icons");
+  public static final String KILL_DISPLAY_TABLE = U.i18n("kill_count_table");
+  public static final String KILL_DISPLAY_NONE = U.i18n("kill_count_none");
   public static final String FLEET_HISTORY_HIDE_COMMANDERS = "FLEET_HISTORY_HIDE_COMMANDERS";
   public static final String FLEET_HISTORY_HIDE_DEPLOYED = "FLEET_HISTORY_HIDE_DEPLOYED";
   public static final String FLEET_HISTORY_HIDE_INACTIVE = "FLEET_HISTORY_HIDE_INACTIVE";
@@ -75,9 +78,9 @@ public class U {
   public static final String BATTLE_LOG = "BATTLE_LOG";
   public static final String KILL_LIST = "KILL_LIST";
   public static final String LOG_VIEW_MODE_KEY = "LOG_VIEW_MODE_KEY";
-  
+
   public static final String MANUAL_BATTLE_INDICATOR = "MANUAL_BATTLE_INDICATOR";
-  
+
   public static final String DELIMITER = ";#~";
 
   // don't use these characters:
@@ -90,6 +93,8 @@ public class U {
           + "!@$%^*()"
           + "_=+[]{}:,./?`";
   private static final int BASE = DIGITS.length();
+
+  private static transient Properties strings = null;
 
   public static String format(float num) {
     return d.format(num);
@@ -129,11 +134,11 @@ public class U {
     }
     return getOfficerLogs().get(officerId);
   }
-  
+
   public static OfficerLog getOfficerLogFor(String officerId) {
     return getOfficerLogs().get(officerId);
-  }  
-  
+  }
+
   public static void addOfficerBattleEntry(PersonAPI officer, String shipId, long timestamp, String battleRecordId) {
     OfficerLog o = getOfficerLogFor(officer);
     Logger.getLogger(OfficerLog.class).info(
@@ -153,7 +158,7 @@ public class U {
       manager.addIntel(i);
     }
 
-  }  
+  }
   public static HashMap<String, BattleRecord> getBattleRecords() {
     HashMap<String, Object> data = getPersistentData();
     if (!data.containsKey(BATTLE_RECORDS_KEY)) {
@@ -311,11 +316,11 @@ public class U {
   }
 
   public static long decodeNum(String s) {
-    
-    if(s == "") {
+
+    if(s.equals("")) {
       return 0;
     }
-    
+
     long value = 0;
     long placeValue = 1;
     for (int i = 0; i < s.length(); i++) {
@@ -328,7 +333,7 @@ public class U {
       }
     }
     return value;
-    
+
   }
 
   public static void clearTempBattleData() {
@@ -339,4 +344,13 @@ public class U {
     U.getPersistentData().remove(U.CURR_BATTLE_RECORD_KEY);
   }
   
+  public static String i18n(String key) {
+    try {
+      return Global.getSettings().getString("fleethistory", key);
+    } catch(Exception e) {
+      log.error("Error getting string with key [" + key + "]: " + e.getMessage());
+      return "Error getting string with key [" + key + "]";
+    }
+  }
+
 }

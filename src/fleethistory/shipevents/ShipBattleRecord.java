@@ -135,33 +135,37 @@ public class ShipBattleRecord implements ShipEvent {
 
   public String getOutcomeString() {
     String str = "";
+    
     if (result.equals(ShipBattleResult.DEPLOYED) || result.equals(ShipBattleResult.RETREATED)) {
       if (health == 1) {
-        str += "Completely unscathed";
+        str += U.i18n("outcome_undamaged");
       } else {
         if (health < 0.33) {
-          str += "Heavily";
+          str += U.i18n("outcome_heavy_damage");
         } else if (health < 0.75) {
-          str += "Moderately";
+          str += U.i18n("outcome_moderate_damage");
         } else if (health < 1) {
-          str += "Lightly";
+          str += U.i18n("outcome_light_damage");
         }
-        str += " damaged (%s)";
       }
     } else {
       if (recovered) {
-        str += (result.equals(ShipBattleResult.DESTROYED) ? "Destroyed" : "Disabled");
+        str += U.i18n(result.equals(ShipBattleResult.DESTROYED) ? "outcome_destroyed" : "outcome_disabled");
       } else {
-        str += "Lost";
+        str += U.i18n("outcome_lost");
       }
     }
-    str += " in battle against %s %s %s";
+    
+    str += U.i18n("in_battle_against");
+    
     if (result.equals(ShipBattleResult.RETREATED)) {
-      str += ", retreated";
+      str += U.i18n("post_battle_retreated");
     } else if (recovered) {
-      str += ", recovered";
+      str += U.i18n("post_battle_recovered");
     }
+    
     return str;
+    
   }
 
   @Override
@@ -227,8 +231,14 @@ public class ShipBattleRecord implements ShipEvent {
     }
 
     if (killCount > 0 && assistCount > 0) {
+      String killStats = String.format(
+              "%s, %s %s",
+              U.i18n(killCount == 1 ? "kill_count" : "kills_count"),
+              U.i18n(assistCount == 1 ? "assist_count" : "assists_count"),
+              U.i18n("fp_count")              
+      );
       t.addPara(
-              "%s kill" + (killCount > 1 ? "s" : "") + ", %s assist" + (assistCount > 1 ? "s" : "") + ", %s fleet point" + (fleetPointCount > 1 ? "s" : ""),
+              killStats,
               U.LINE_SPACING,
               new Color[]{Misc.getNegativeHighlightColor(), Misc.getHighlightColor(), Misc.getBrightPlayerColor()},
               killCount + "",
@@ -236,16 +246,18 @@ public class ShipBattleRecord implements ShipEvent {
               fleetPointCount + ""
       );
     } else if (killCount > 0) {
+      String killStats = String.format("%s %s", U.i18n(killCount == 1 ? "kill_count" : "kills_count"), U.i18n("fp_count"));
       t.addPara(
-              "%s kill" + (killCount > 1 ? "s" : "") + ", %s fleet point" + (fleetPointCount > 1 ? "s" : ""),
+              killStats,
               U.LINE_SPACING,
               new Color[]{Misc.getNegativeHighlightColor(), Misc.getBrightPlayerColor()},
               killCount + "",
               fleetPointCount + ""
       );
     } else {
+      String killStats = String.format("%s %s", U.i18n(assistCount == 1 ? "assist_count" : "assists_count"), U.i18n("fp_count"));
       t.addPara(
-              "%s assist" + (assistCount > 1 ? "s" : "") + ", %s fleet point" + (fleetPointCount > 1 ? "s" : ""),
+              killStats,
               U.LINE_SPACING,
               new Color[]{Misc.getHighlightColor(), Misc.getBrightPlayerColor()},
               assistCount + "",
@@ -290,10 +302,10 @@ public class ShipBattleRecord implements ShipEvent {
       float tableWidth = width * 0.8f;
       t.beginTable(
               Global.getSector().getPlayerFaction(), 20,
-              "Ship Type", tableWidth * 0.5f,
-              "Kills", tableWidth * 0.1f,
-              "Assists", tableWidth * 0.1f,
-              "Fleet Points", tableWidth * 0.15f
+              U.i18n("ship_type"), tableWidth * 0.5f,
+              U.i18n("kills"), tableWidth * 0.1f,
+              U.i18n("assists"), tableWidth * 0.1f,
+              U.i18n("fleet_points"), tableWidth * 0.15f
       );
       for (ShipBattleRecordStats statsRow : statsList) {
         ShipHullSpecAPI hull = Global.getSettings().getHullSpec(statsRow.getHullId());

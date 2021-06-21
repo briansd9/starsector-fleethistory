@@ -24,7 +24,6 @@ import fleethistory.types.OfficerBattleEntry;
 import fleethistory.types.OfficerLog;
 import fleethistory.types.OfficerLogEntry;
 import fleethistory.types.ShipInfo;
-import fleethistory.types.ShipLog;
 import java.awt.Color;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -76,7 +75,7 @@ public class OfficerLogIntel extends BaseFleetHistoryIntelPlugin {
               0
       );
       t.addPara(
-              "Level %s",
+              U.i18n("officer_level"),
               0,
               isActive ? Misc.getHighlightColor() : Misc.getDarkHighlightColor(),
               o.getLevel() + ""
@@ -84,13 +83,18 @@ public class OfficerLogIntel extends BaseFleetHistoryIntelPlugin {
 
       if (o.getStats().battles > 0) {
         t.addPara(
-                "%s battle" + (o.getStats().battles != 1 ? "s" : ""),
+                U.i18n(o.getStats().battles == 1 ? "battle_count" : "battles_count"),
                 0,
                 (isActive ? Misc.getBrightPlayerColor() : Misc.getDarkPlayerColor()),
                 o.getStats().battles + ""
         );
+        String killStats = String.format("%s, %s %s",
+                U.i18n(o.getStats().kills == 1 ? "kill_count" : "kills_count"),
+                U.i18n(o.getStats().assists == 1 ? "assist_count" : "assists_count"),
+                U.i18n("total_fp_count")
+        );
         t.addPara(
-                "%s kill" + (o.getStats().kills != 1 ? "s" : "") + ", %s assist" + (o.getStats().assists != 1 ? "s" : "") + ", %s FP",
+                killStats, 
                 0,
                 new Color[]{
                   (isActive ? Misc.getNegativeHighlightColor() : Misc.scaleColorOnly(Misc.getNegativeHighlightColor(), 0.5f)),
@@ -134,7 +138,7 @@ public class OfficerLogIntel extends BaseFleetHistoryIntelPlugin {
       // officer info - level
       TooltipMakerAPI officerLevel = panel.createUIElement(bannerSize, 10, false);
       officerLevel.setParaFontVictor14();
-      officerLevel.addPara("Level %s", 0, Misc.getHighlightColor(), o.getLevel() + "");
+      officerLevel.addPara(U.i18n("officer_level"), 0, Misc.getHighlightColor(), o.getLevel() + "");
       panel.addUIElement(officerLevel).belowLeft(officerInfo, 0);
 
       // skill icons
@@ -188,30 +192,30 @@ public class OfficerLogIntel extends BaseFleetHistoryIntelPlugin {
       OfficerLog.OfficerBattleStats obs = o.getStats();
       TooltipMakerAPI officerStats = panel.createUIElement(width - bannerSize - 25, 0, false);
       if (o.getId().equals(Global.getSector().getPlayerFleet().getCommander().getId())) {
-        officerStats.addPara("Fleet commander", Misc.getBrightPlayerColor(), 0);
+        officerStats.addPara(U.i18n("fleet_commander"), Misc.getBrightPlayerColor(), 0);
         String currentShip = o.getCurrentShipAssignment();
         if (currentShip != null) {
-          officerStats.addPara("Commanding flagship %s", 0, Misc.getBrightPlayerColor(), currentShip);
+          officerStats.addPara(U.i18n("commanding_flagship"), 0, Misc.getBrightPlayerColor(), currentShip);
         }
       } else if (obs.firstTimestamp != 0) {
         String currentShip = o.getCurrentShipAssignment();
         if (currentShip != null) {
-          officerStats.addPara("In active service since %s", 0, Misc.getBrightPlayerColor(), U.dateString(obs.firstTimestamp));
+          officerStats.addPara(U.i18n("active_service_since"), 0, Misc.getBrightPlayerColor(), U.dateString(obs.firstTimestamp));
           officerStats.addPara(
-                  "Commanding %s",
+                  U.i18n("commanding"),
                   0,
                   Misc.getBrightPlayerColor(),
                   currentShip
           );
         } else {
-          officerStats.addPara("In active service from %s to %s", 0, Misc.getBrightPlayerColor(), U.dateString(obs.firstTimestamp), U.dateString(obs.lastTimestamp));
+          officerStats.addPara(U.i18n("active_service_from_to"), 0, Misc.getBrightPlayerColor(), U.dateString(obs.firstTimestamp), U.dateString(obs.lastTimestamp));
           for(int i = o.getEntries().size() - 1; i >= 0; i--) {
             OfficerLogEntry ole = o.getEntries().get(i);
             if(ole instanceof OfficerBattleEntry) {
               OfficerBattleEntry obe = (OfficerBattleEntry)ole;
               ShipInfo si = U.getShipLogFor(obe.getShipId()).info;
               officerStats.addPara(
-                      "Last commanded %s",
+                      U.i18n("last_commanded"),
                       0,
                       Misc.getBrightPlayerColor(),
                       si.getShipName() + ", " + si.getHullSpec().getNameWithDesignationWithDashClass()
@@ -225,38 +229,41 @@ public class OfficerLogIntel extends BaseFleetHistoryIntelPlugin {
       // officer info - battle stats
       if (obs.battles > 0) {
         if (obs.timesKilled > 0) {
+          String battleStats = String.format(
+                  "%s %s",
+                  U.i18n(obs.battles == 1 ? "officer_battle_fought" : "officer_battles_fought"),
+                  U.i18n(obs.timesKilled == 1 ? "officer_rescue" : "officer_rescues")
+          );
           officerStats.addPara(
-                  "%s battle" + (obs.battles > 1 ? "s" : "") + " fought (rescued %s time" + (obs.timesKilled > 1 ? "s" : "") + ")",
+                  battleStats,
                   0,
                   Misc.getBrightPlayerColor(),
                   obs.battles + "", obs.timesKilled + ""
           );
         } else {
-          officerStats.addPara("%s battle" + (obs.battles > 1 ? "s" : "") + " fought", 0, Misc.getBrightPlayerColor(), obs.battles + "");
+          officerStats.addPara(
+                  U.i18n(obs.battles == 1 ? "officer_battle_fought" : "officer_battles_fought"),
+                  0,
+                  Misc.getBrightPlayerColor(), 
+                  obs.battles + ""
+          );
         }
         if (obs.kills > 0 && obs.assists > 0) {
-          officerStats.addPara(
-                  "%s kill" + (obs.kills > 1 ? "s" : "")
-                  + " and %s assist" + (obs.assists > 1 ? "s" : "")
-                  + " (total %s fleet point" + (obs.fleetPoints > 1 ? "s" : "") + ")",
-                  0,
+          String killStats = String.format("%s, %s %s",
+                  U.i18n(obs.kills == 1 ? "kill_count" : "kills_count"),
+                  U.i18n(obs.assists == 1 ? "assist_count" : "assists_count"),
+                  U.i18n("total_fp_count")
+          );
+          officerStats.addPara(killStats, 0,
                   new Color[]{Misc.getNegativeHighlightColor(), Misc.getHighlightColor(), Misc.getBrightPlayerColor()},
                   obs.kills + "", obs.assists + "", obs.fleetPoints + ""
           );
         } else if (obs.kills > 0) {
-          officerStats.addPara(
-                  "%s kill" + (obs.kills > 1 ? "s" : "") + " (total %s fleet point" + (obs.fleetPoints > 1 ? "s" : "") + ")",
-                  0,
-                  new Color[]{Misc.getNegativeHighlightColor(), Misc.getBrightPlayerColor()},
-                  obs.kills + "", obs.fleetPoints + ""
-          );
+          String killStats = String.format("%s %s", U.i18n(obs.kills == 1 ? "kill_count" : "kills_count"), U.i18n("total_fp_count"));
+          officerStats.addPara(killStats, 0, new Color[]{Misc.getNegativeHighlightColor(), Misc.getBrightPlayerColor()}, obs.kills + "", obs.fleetPoints + "");
         } else if (obs.assists > 0) {
-          officerStats.addPara(
-                  "%s assist" + (obs.assists > 1 ? "s" : "") + " (total %s fleet point" + (obs.fleetPoints > 1 ? "s" : "") + ")",
-                  0,
-                  new Color[]{Misc.getHighlightColor(), Misc.getBrightPlayerColor()},
-                  obs.assists + "", obs.fleetPoints + ""
-          );
+          String killStats = String.format("%s %s", U.i18n(obs.assists == 1 ? "assist_count" : "assists_count"), U.i18n("total_fp_count"));
+          officerStats.addPara(killStats, 0, new Color[]{Misc.getHighlightColor(), Misc.getBrightPlayerColor()}, obs.assists + "", obs.fleetPoints + "");
         }
       }
       panel.addUIElement(officerStats).belowLeft(iconRowStart, U.LINE_SPACING);
@@ -266,7 +273,7 @@ public class OfficerLogIntel extends BaseFleetHistoryIntelPlugin {
         HashMap<String, Object> pd = U.getPersistentData();
         TooltipMakerAPI button1 = panel.createUIElement(100, 25, false);
         button1.addAreaCheckbox(
-                "Kill List",
+                U.i18n("kill_list"),
                 U.KILL_LIST,
                 Misc.getBasePlayerColor(),
                 Misc.getDarkPlayerColor(),
@@ -278,7 +285,7 @@ public class OfficerLogIntel extends BaseFleetHistoryIntelPlugin {
         panel.addUIElement(button1).belowLeft(officerImg, 15);
         TooltipMakerAPI button2 = panel.createUIElement(100, 25, false);
         button2.addAreaCheckbox(
-                "Battle Log",
+                U.i18n("battle_log"),
                 U.BATTLE_LOG,
                 Misc.getBasePlayerColor(),
                 Misc.getDarkPlayerColor(),
@@ -528,10 +535,10 @@ public class OfficerLogIntel extends BaseFleetHistoryIntelPlugin {
       TooltipMakerAPI killList = content.createUIElement(width, 0, false);
       killList.beginTable(
               Global.getSector().getPlayerFaction(), 20,
-              "Ship Type", width * 0.45f,
-              "Kills", width * 0.1f,
-              "Assists", width * 0.1f,
-              "Total fleet points", width * 0.2f
+              U.i18n("ship_type"), width * 0.45f,
+              U.i18n("kills"), width * 0.1f,
+              U.i18n("assists"), width * 0.1f,
+              U.i18n("total_fleet_points"), width * 0.2f
       );
       for (String key : keys) {
         ShipHullSpecAPI hull = Global.getSettings().getHullSpec(key);

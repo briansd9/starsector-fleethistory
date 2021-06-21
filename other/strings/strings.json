@@ -1,0 +1,211 @@
+{
+  
+  "fleethistory" : {
+    
+    # used for intel category button
+    "intel_category_tag" : "Fleet Action History",
+    
+    # label of main intel item
+    "base_intel_item_header" : "Fleet Action History",
+    
+    "battle_date" : "Date",
+    "battle_location" : "Location",
+    "battle_result" : "Result",
+    "bounty_claimed" : "Bounty on %s's head claimed",
+
+    # <victory/defeat> vs. <faction>
+    "battle_versus" : "%s vs. %s",
+    
+    "victory_heroic" : "Heroic victory",
+    "victory_overwhelming" : "Overwhelming victory",
+    "victory_pyrrhic" : "Pyrrhic victory",
+    "victory_close" : "Close victory",
+    "victory" : "Victory",
+
+    "defeat_heroic" : "Heroic victory",
+    "defeat_utter" : "Utter defeat",
+    "defeat_crushing" : "Crushing defeat",
+    "defeat_close" : "Close defeat",
+    "defeat" : "Defeat",
+    
+    "casualties_header" : "Casualties and losses",    
+    "no_ships_lost" : "No ships lost",
+    "ship_deployed" : "%s ship deployed (%s fleet points)",
+    "ships_deployed" : "%s ships deployed (%s total fleet points)",
+    "all_ships_lost" : "Deployed forces completely annihilated",
+    "ship_lost" : "(%s ship, %s fleet points)",
+    "ships_lost" : "(%s ships, %s total fleet points)",
+    "some_ships_lost" : "%s of deployed forces lost",
+    "ships_lost_fraction" : "(%s / %s ships,  %s / %s total fleet points)",
+    "officer_lost" : "%s officer killed in action",
+    "officers_lost" : "%s officers killed in action",
+    
+    "fleets_header" : "Fleets involved",
+    "commanders_header" : "Commanders and leaders",
+    "strengths_header" : "Deployed forces",
+    
+    # used for event locations: event <inOrAt> <location>
+    # "at" only used for battles at an orbital station
+    "in" : "in",
+    "at" : "at",
+    
+    "ship_name" : "Ship Name",
+    "ship_type" : "Ship Type",
+    "battles" : "Battles",
+    "kills" : "Kills",
+    "assists" : "Assists",
+    "fleet_points" : "Fleet Points",
+    "total_fleet_points" : "Total Fleet Points",
+    "faction" : "Faction",
+    "won" : "Won",
+    "lost" : "Lost",
+    "total_battles" : "Total",
+    "frigates" : "Frigates",
+    "destroyers" : "Destroyers",
+    "cruisers" : "Cruisers",
+    "capital_ships" : "Capitals",
+    "stations" : "Stations",
+    
+    # IMPORTANT: the extra space at the end is required!
+    # total_battles and total_ships are used as button IDs, must have distinct values
+    "total_ships" : "Total ",
+    
+    "total_fp" : "Total FP",
+    "faction_ships_destroyed" : "Faction Ships Destroyed",
+    "ships_lost_to_faction" : "Ships Lost to Faction",
+    "level" : "Level",
+    "name" : "Name",
+    
+    "battle_settings_header" : "Battle Settings",
+    "battle_size" : "Battle Size",
+    "battle_size_desc" : "Only display battles with at least this many total fleet points deployed.",
+    "days_ago" : "Battle Size",
+    "days_ago_desc" : "Only display battles within the selected time period (select 0 to show all).",
+    "hide_commanders" : "Hide commanders section",
+    "hide_deployed" : "Hide deployed forces section",
+    
+    "ship_officer_settings_header" : "Ship and Officer Settings",
+    "battles_fought" : "Battles fought",
+    "battles_fought_desc" : "Only display ships / officers that have been deployed in at least this many battles.",
+    "fleet_point_score" : "Fleet point score",
+    "fleet_point_score_desc" : "Only display ships / officers that have killed at least this many FP of enemy ships.",
+    "kill_count_display" : "Kill count display",
+    "kill_count_display_desc" : "Select how to display detailed kill counts in battle logs.",
+    "kill_count_icons" : "Icons",
+    "kill_count_table" : "Table",
+    "kill_count_none" : "None",
+    "hide_inactive" : "Hide inactive",
+    "hide_inactive_desc" : "If checked, ships and officers not currently in your fleet (in storage / unassigned / lost in battle) will be hidden.",
+    
+    "clear_all_data" : "Clear all data",
+    "clear_all_data_desc" : "Deletes all stored fleet history data, and prevents any further data from being logged for this play session. This allows the mod to be safely disabled.",
+    "clear_prompt_1" : "All fleet history will be removed. %s",
+    "clear_prompt_2" : "This cannot be undone!",
+    "clear_prompt_3" : "Do you want to proceed?",
+
+    "battle_count" : "%s battle",
+    "battles_count" : "%s battles",
+    "kill_count" : "%s kill",
+    "kills_count" : "%s kills",
+    "assist_count" : "%s assist",
+    "assists_count" : "%s assists",
+    "fp_count" : "(%s FP)",
+    "total_fp_count" : "(total %s FP)",
+    
+    # previous battle: kills/assists/FP
+    "previous_battle_stats" : "Previous battle: %s / %s / %s",
+    
+    "officer_level" : "Level %s",
+    "officer_battle_fought" : "%s battle fought",
+    "officer_battles_fought" : "%s battles fought",
+    "officer_rescue" : "(rescued %s time)",
+    "officer_rescues" : "(rescued %s times)",
+    
+    "fleet_commander" : "Fleet commander",
+    
+    # %s = full name and class of commanded ship
+    "commanding_flagship" : "Commanding flagship %s",
+    "commanding" : "Commanding %s",
+    "last_commanded" : "Last commanded %s",
+    
+    "active_service_since" : "In active service since %s",
+    "active_service_from_to" : "In active service from %s to %s",
+    
+    "kill_list" : "Kill List",
+    "battle_log" : "Battle Log",
+    
+    # %s = officer/commander name
+    "commanding_officer" : "Commanding officer: %s",
+    "flagship_of_commander" : "Flagship of %s's fleet",
+    
+    "deployment" : "Deployed in %s battle",
+    "deployments" : "Deployed in %s battles",
+    "recovery" : "(recovered %s time)",
+    "recoveries" : "(recovered %s times)",
+    
+    # used for assembling player ships' battle status:
+    # <outcome> <in_battle_against> <post_battle>      
+    "outcome_undamaged" : "Completely unscathed",
+    
+    # destroyed/disabled = recovered after battle 
+    "outcome_destroyed" : "Destroyed",
+    "outcome_disabled" : "Disabled",
+    
+    # lost permanently
+    "outcome_lost" : "Lost",    
+    
+    # for partially damaged ships, %s = percentage of hull points lost
+    "outcome_heavy_damage" : "Heavily damaged (%s)",
+    "outcome_moderate_damage" : "Moderately damaged (%s)",
+    "outcome_light_damage" : "Lightly damaged (%s)",
+    
+    # in battle against <faction> <onOrAt> <location>
+    "in_battle_against" : " in battle against %s %s %s",
+    
+    "post_battle_retreated" : ", retreated",
+    "post_battle_recovered" : ", recovered",
+    
+    "recovered_in" : "Recovered in %s",
+    
+    # bought/sold <onOrAt> <location> for <$credits>
+    # onOrAt uses MarketAPI.getOnOrAt()
+    "ship_bought" : "Bought %s %s for %s",
+    "ship_sold" : "Sold %s %s for %s",
+    
+    "ship_retrieved" : "Retrieved from %s",
+    
+    # stored <onOrAt> <location>
+    "ship_stored" : "Stored %s %s",
+    
+    "captain_tooltip_commanding_flagship" : "Commanding flagship",
+    "captain_tooltip_commanding" : "Commanding",
+    "captain_tooltip_destroyed" : "(destroyed)",
+    "captain_tooltip_disabled" : "(disabled)",
+    
+    "shipcount_tooltip_deployed" : "%s deployed",
+    "shipcount_tooltip_total_fp" : "%s total FP",
+    
+    # second %s = "no survivors" highlighted in red
+    "shipcount_tooltip_nosurvivors_1" : "%s deployed, %s",
+    "shipcount_tooltip_nosurvivors_2" : "no survivors",
+    
+    # for orbital stations, "destroyed" instead of "1 deployed, no survivors"    
+    "shipcount_tooltip_destroyed" : "Destroyed",
+    
+    "shipcount_tooltip_deployed_fraction" : "%s lost of %s deployed",
+    "shipcount_tooltip_fp_fraction" : "%s / %s total FP",
+    
+    "shipkillcount_tooltip_total_fp" : "%s total fleet points",
+    
+    # if no player faction yet, use "<playername>'s Fleet" for faction name
+    "player_fleet_name" : "%s's Fleet",
+    
+    # Commanded <shipname>, <shipclass>
+    "officer_command_string" : "Commanded %s, %s",
+    "officer_skill_gained" : "Gained %s new skill",
+    "officer_skills_gained" : "Gained %s new skills",
+    "elite_skill_suffix" : " (elite)",
+    
+  }
+
+}

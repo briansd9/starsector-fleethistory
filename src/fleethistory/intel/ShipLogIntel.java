@@ -150,7 +150,7 @@ public class ShipLogIntel extends BaseFleetHistoryIntelPlugin {
       if (shipLog.getKills() > 0 || shipLog.getAssists() > 0) {
         HashMap<String, Object> pd = U.getPersistentData();
         TooltipMakerAPI button1 = panel.createUIElement(100, 25, false);
-        button1.addAreaCheckbox("Kill List", U.KILL_LIST,
+        button1.addAreaCheckbox(U.i18n("kill_list"), U.KILL_LIST,
                 Misc.getBasePlayerColor(),
                 Misc.getDarkPlayerColor(),
                 U.KILL_LIST.equals((String) pd.get(U.LOG_VIEW_MODE_KEY)) ? Misc.getHighlightColor() : Misc.getBrightPlayerColor(),
@@ -160,7 +160,7 @@ public class ShipLogIntel extends BaseFleetHistoryIntelPlugin {
         );
         panel.addUIElement(button1).belowLeft(infoBanner, 10);
         TooltipMakerAPI button2 = panel.createUIElement(100, 20, false);
-        button2.addAreaCheckbox("Battle Log", U.BATTLE_LOG,
+        button2.addAreaCheckbox(U.i18n("battle_log"), U.BATTLE_LOG,
                 Misc.getBasePlayerColor(),
                 Misc.getDarkPlayerColor(),
                 U.BATTLE_LOG.equals((String) pd.get(U.LOG_VIEW_MODE_KEY)) ? Misc.getHighlightColor() : Misc.getBrightPlayerColor(),
@@ -336,10 +336,10 @@ public class ShipLogIntel extends BaseFleetHistoryIntelPlugin {
 
       killList.beginTable(
               Global.getSector().getPlayerFaction(), 20,
-              "Ship Type", width * 0.45f,
-              "Kills", width * 0.1f,
-              "Assists", width * 0.1f,
-              "Total fleet points", width * 0.2f
+              U.i18n("ship_type"), width * 0.45f,
+              U.i18n("kills"), width * 0.1f,
+              U.i18n("assists"), width * 0.1f,
+              U.i18n("total_fleet_points"), width * 0.2f
       );
       for (String key : keys) {
         ShipHullSpecAPI hull = Global.getSettings().getHullSpec(key);
@@ -396,9 +396,9 @@ public class ShipLogIntel extends BaseFleetHistoryIntelPlugin {
     String shipFullName = shipLog.info.getShipName() + ", " + shipLog.info.getHullSpec().getNameWithDesignationWithDashClass();
     for(OfficerLog ol : U.getOfficerLogs().values()) {
       if(shipFullName.equals(ol.getCurrentShipAssignment())) {
-        String officerString = "Commanding officer: %s";
+        String officerString = U.i18n("commanding_officer");
         if(Global.getSector().getPlayerPerson().getId().equals(ol.getId())) {
-          officerString = "Flagship of %s's fleet";
+          officerString = U.i18n("flagship_of_commander");
         }
         text.addPara(officerString, 0, Misc.getBrightPlayerColor(), ol.getName());
         break;
@@ -409,22 +409,32 @@ public class ShipLogIntel extends BaseFleetHistoryIntelPlugin {
     if (combats > 0) {
       int recovered = shipLog.getRecovered();
       if (recovered > 0) {
+        String combatStats = String.format(
+                "%s %s",
+                U.i18n(combats == 1 ? "deployment" : "deployments"),
+                U.i18n(recovered == 1 ? "recovery" : "recoveries")
+        );
         text.addPara(
-                "Deployed in %s battle" + (combats > 1 ? "s" : "") + " (recovered %s time" + (recovered > 1 ? "s" : "") + ")",
+                combatStats,
                 0,
                 Misc.getBrightPlayerColor(),
                 combats + "",
                 recovered + ""
         );
       } else {
-        text.addPara("Deployed in %s battle" + (combats > 1 ? "s" : ""), 0, Misc.getBrightPlayerColor(), combats + "");
+        text.addPara(U.i18n(combats == 1 ? "deployment" : "deployments"), 0, Misc.getBrightPlayerColor(), combats + "");
       }
       int kills = shipLog.getKills();
       int assists = shipLog.getAssists();
       int points = shipLog.getFleetPointScore();
       if (kills > 0 && assists > 0) {
+        String killStats = String.format("%s, %s %s",
+                U.i18n(kills == 1 ? "kill_count" : "kills_count"),
+                U.i18n(assists == 1 ? "assist_count" : "assists_count"),
+                U.i18n("total_fp_count")
+        );
         text.addPara(
-                "%s kill" + (kills > 1 ? "s" : "") + " and %s assist" + (assists > 1 ? "s" : "") + " (total %s fleet point" + (points > 1 ? "s" : "") + ")",
+                killStats,
                 0,
                 new Color[]{
                   Misc.getNegativeHighlightColor(),
@@ -436,8 +446,12 @@ public class ShipLogIntel extends BaseFleetHistoryIntelPlugin {
                 points + ""
         );
       } else if (kills > 0) {
+        String killStats = String.format("%s %s",
+                U.i18n(kills == 1 ? "kill_count" : "kills_count"),
+                U.i18n("total_fp_count")
+        );
         text.addPara(
-                "%s kill" + (kills > 1 ? "s" : "") + " (total %s fleet point" + (points > 1 ? "s" : "") + ")",
+                killStats,
                 0,
                 new Color[]{
                   Misc.getNegativeHighlightColor(),
@@ -447,8 +461,12 @@ public class ShipLogIntel extends BaseFleetHistoryIntelPlugin {
                 points + ""
         );
       } else if (assists > 0) {
+        String killStats = String.format("%s %s",
+                U.i18n(assists == 1 ? "assist_count" : "assists_count"),
+                U.i18n("total_fp_count")
+        );
         text.addPara(
-                "%s assist" + (assists > 1 ? "s" : "") + " (total %s fleet point" + (points > 1 ? "s" : "") + ")",
+                killStats,
                 0,
                 new Color[]{
                   Misc.getHighlightColor(),
@@ -554,7 +572,7 @@ public class ShipLogIntel extends BaseFleetHistoryIntelPlugin {
   @Override
   public Set<String> getIntelTags(SectorMapAPI map) {
     Set<String> tags = super.getIntelTags(map);
-    tags.add("Fleet Action History");
+    tags.add(U.i18n("intel_category_tag"));
     return tags;
   }
 
@@ -567,7 +585,6 @@ public class ShipLogIntel extends BaseFleetHistoryIntelPlugin {
     t.addPara(shipLog.info.getShipName(), isCurrentFleetMember ? Misc.getBrightPlayerColor() : Misc.getDarkPlayerColor(), 0);
     t.addPara(shipLog.info.getHullSpec().getNameWithDesignationWithDashClass(), isCurrentFleetMember ? Misc.getTextColor() : Misc.getGrayColor(), 0);
 
-    Color highlightColor = isCurrentFleetMember ? Misc.getHighlightColor() : Misc.getDarkHighlightColor();
     t.setParaFontColor(isCurrentFleetMember ? Misc.getTextColor() : Misc.getGrayColor());
 
     int combats = shipLog.getCombats();
@@ -577,13 +594,19 @@ public class ShipLogIntel extends BaseFleetHistoryIntelPlugin {
 
     if (combats > 0) {
       t.addPara(
-              "%s battle" + (combats != 1 ? "s" : ""),
+              U.i18n(combats == 1 ? "battle_count" : "battles_count"),
               0,
               (isCurrentFleetMember ? Misc.getBrightPlayerColor() : Misc.getDarkPlayerColor()),
               combats + ""
       );
+      String killStats = String.format(
+              "%s, %s %s",
+              U.i18n(kills == 1 ? "kill_count" : "kills_count"),
+              U.i18n(assists == 1 ? "assist_count" : "assists_count"),
+              U.i18n("fp_count")
+      );
       t.addPara(
-              "%s kill" + (kills != 1 ? "s" : "") + ", %s assist" + (assists != 1 ? "s" : "") + ", %s FP",
+              killStats,
               0,
               new Color[]{
                 (isCurrentFleetMember ? Misc.getNegativeHighlightColor() : Misc.scaleColorOnly(Misc.getNegativeHighlightColor(), 0.5f)),
@@ -600,7 +623,7 @@ public class ShipLogIntel extends BaseFleetHistoryIntelPlugin {
       ShipBattleRecord sbr = shipLog.getLastBattleRecord();
       if (sbr != null) {
         t.addPara(
-                "Previous battle: %s / %s / %s",
+                U.i18n("previous_battle_stats"),
                 0,
                 new Color[]{
                   (isCurrentFleetMember ? Misc.getNegativeHighlightColor() : Misc.scaleColorOnly(Misc.getNegativeHighlightColor(), 0.5f)),

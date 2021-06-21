@@ -7,6 +7,7 @@ package fleethistory.tooltips;
 
 import com.fs.starfarer.api.ui.TooltipMakerAPI;
 import com.fs.starfarer.api.util.Misc;
+import fleethistory.U;
 import java.awt.Color;
 import fleethistory.types.BattleRecordPersonInfo;
 import fleethistory.types.ShipBattleResult;
@@ -53,10 +54,10 @@ public class CaptainTooltip implements TooltipMakerAPI.TooltipCreator {
       if(info.shipStatus != null) {
         switch(info.shipStatus) {
           case ShipBattleResult.DESTROYED:
-            shipStatus = "(destroyed)";
+            shipStatus = U.i18n("captain_tooltip_destroyed");
             break;
           case ShipBattleResult.DISABLED:
-            shipStatus = "(disabled)";
+            shipStatus = U.i18n("captain_tooltip_disabled");
             break;
         }
       }
@@ -69,7 +70,7 @@ public class CaptainTooltip implements TooltipMakerAPI.TooltipCreator {
           Misc.getNegativeHighlightColor()
         },
         new String[] {
-          info.isFleetCommander ? "Commanding flagship" : "Commanding",
+          U.i18n(info.isFleetCommander ? "captain_tooltip_commanding_flagship" : "captain_tooltip_commanding"),
           info.getFullShipName(),
           shipStatus
         }

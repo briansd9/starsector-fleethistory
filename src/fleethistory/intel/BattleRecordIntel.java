@@ -121,11 +121,6 @@ public class BattleRecordIntel extends BaseFleetHistoryIntelPlugin {
     }
 
   }
-
-  // TODO remove later
-  private int getNumRows(float width, int numElements, float widthPerElement) {
-    return 1;
-  }
   
   private TooltipMakerAPI createTopInfo(CustomPanelAPI panel, float width) {
 
@@ -142,7 +137,7 @@ public class BattleRecordIntel extends BaseFleetHistoryIntelPlugin {
     float labelWidth = width * 0.15f;
 
     TooltipMakerAPI dateLabel = container.createUIElement(labelWidth, 0, false);
-    dateLabel.addPara("Date", 0);
+    dateLabel.addPara(U.i18n("battle_date"), 0);
     container.addUIElement(dateLabel).inTL(0, U.LINE_SPACING);
     TooltipMakerAPI dateText = container.createUIElement(width - labelWidth, 0, false);
     dateText.setParaFontColor(Misc.getHighlightColor());
@@ -150,7 +145,7 @@ public class BattleRecordIntel extends BaseFleetHistoryIntelPlugin {
     container.addUIElement(dateText).rightOfMid(dateLabel, 0);
 
     TooltipMakerAPI locLabel = container.createUIElement(labelWidth, 0, false);
-    locLabel.addPara("Location", 0);
+    locLabel.addPara(U.i18n("battle_location"), 0);
     container.addUIElement(locLabel).belowMid(dateLabel, U.LINE_SPACING);
     TooltipMakerAPI locText = container.createUIElement(width - labelWidth, 0, false);
     locText.setParaFontColor(Misc.getHighlightColor());
@@ -158,7 +153,7 @@ public class BattleRecordIntel extends BaseFleetHistoryIntelPlugin {
     container.addUIElement(locText).rightOfMid(locLabel, 0);
 
     TooltipMakerAPI resLabel = container.createUIElement(labelWidth, 0, false);
-    resLabel.addPara("Result", 0);
+    resLabel.addPara(U.i18n("battle_result"), 0);
     container.addUIElement(resLabel).belowMid(locLabel, U.LINE_SPACING);
     TooltipMakerAPI resText = container.createUIElement(width - labelWidth, 0, false);
     resText.setParaFontColor(Misc.getHighlightColor());
@@ -168,7 +163,7 @@ public class BattleRecordIntel extends BaseFleetHistoryIntelPlugin {
         switch (info.key) {
           case BattleRecordExtraInfo.BOUNTY_COMPLETED:
             resText.setParaFontColor(Misc.getTextColor());
-            resText.addPara("Bounty on %s's head claimed", U.LINE_SPACING, Misc.getHighlightColor(), info.data);
+            resText.addPara(U.i18n("bounty_claimed"), U.LINE_SPACING, Misc.getHighlightColor(), info.data);
             break;
         }
       }
@@ -192,35 +187,35 @@ public class BattleRecordIntel extends BaseFleetHistoryIntelPlugin {
 
     if (br.playerWon) {
       if (enemyLost >= 5 * playerDeployed) {
-        return "Heroic victory";
+        return U.i18n("victory_heroic");
       }
       if (playerLost == 0 && enemyLossPct >= 0.75) {
-        return "Overwhelming victory";
+        return U.i18n("victory_overwhelming");
       }
       if (playerLossPct >= 0.75 && enemyLost < playerLost) {
-        return "Pyrrhic victory";
+        return U.i18n("victory_pyrrhic");
       }
       // both sides' deployed forces and losses within 20%
       if (Math.max(playerDeployed, enemyDeployed) / Math.max(1, Math.min(playerDeployed, enemyDeployed)) <= 1.2
               && Math.max(playerLost, enemyLost) / Math.max(1, Math.min(playerLost, enemyLost)) <= 1.2) {
-        return "Close victory";
+        return U.i18n("victory_close");
       }
-      return "Victory";
+      return U.i18n("victory");
     } else {
       if (enemyLost >= 5 * playerDeployed) {
-        return "Heroic defeat";
+        return U.i18n("defeat_heroic");
       }
       if (enemyLost == 0 && playerLossPct >= 0.75) {
-        return "Utter defeat";
+        return U.i18n("defeat_utter");
       }
       if (playerLossPct >= 0.75 && enemyLost < playerLost) {
-        return "Crushing defeat";
+        return U.i18n("defeat_crushing");
       }
       if (Math.max(playerDeployed, enemyDeployed) / Math.max(1, Math.min(playerDeployed, enemyDeployed)) <= 1.2
               && Math.max(playerLost, enemyLost) / Math.max(1, Math.min(playerLost, enemyLost)) <= 1.2) {
-        return "Close defeat";
+        return U.i18n("defeat_close");
       }
-      return "Defeat";
+      return U.i18n("defeat");
     }
 
   }
@@ -233,7 +228,7 @@ public class BattleRecordIntel extends BaseFleetHistoryIntelPlugin {
     CustomPanelAPI container = panel.createCustomPanel(width, 0, null);
 
     TooltipMakerAPI header = container.createUIElement(width, 0, false);
-    header.addSectionHeading("Casualties and losses", Alignment.MID, 0);
+    header.addSectionHeading(U.i18n("casualties_header"), Alignment.MID, 0);
     container.addUIElement(header).inTL(0, 0);
 
     TooltipMakerAPI playerLossSection = createLossSection(container, width, br.playerSide);
@@ -255,9 +250,9 @@ public class BattleRecordIntel extends BaseFleetHistoryIntelPlugin {
     BattleRecordSideCount deployed = side.getDeployedCount();
     BattleRecordSideCount lost = side.getLostCount();
     if (lost.fp == 0) {
-      t.addPara("No ships lost", Misc.getPositiveHighlightColor(), U.LINE_SPACING);
+      t.addPara(U.i18n("no_ships_lost"), Misc.getPositiveHighlightColor(), U.LINE_SPACING);
       t.addPara(
-              "%s ship" + (deployed.ships != 1 ? "s" : "") + " deployed (%s total fleet points)",
+              U.i18n(deployed.ships != 1 ? "ships_deployed" : "ship_deployed"),
               U.LINE_SPACING,
               Misc.getHighlightColor(),
               new String[]{
@@ -267,10 +262,10 @@ public class BattleRecordIntel extends BaseFleetHistoryIntelPlugin {
       );
     } else if (lost.fp == deployed.fp) {
       t.setParaFontColor(Misc.getNegativeHighlightColor());
-      t.addPara("Deployed forces completely annihilated", U.LINE_SPACING);
+      t.addPara(U.i18n("all_ships_lost"), U.LINE_SPACING);
       t.setParaFontColor(Misc.getTextColor());
       t.addPara(
-              "(%s ship" + (deployed.ships != 1 ? "s" : "") + ", %s total fleet points)",
+              U.i18n(deployed.ships != 1 ? "ships_lost" : "ship_lost"),
               U.LINE_SPACING,
               Misc.getHighlightColor(),
               new String[]{
@@ -279,13 +274,13 @@ public class BattleRecordIntel extends BaseFleetHistoryIntelPlugin {
       );
     } else {
       t.addPara(
-              "%s of deployed forces lost",
+              U.i18n("some_ships_lost"),
               U.LINE_SPACING,
               Misc.getNegativeHighlightColor(),
               U.format(100f * lost.fp / deployed.fp) + "%"
       );
       t.addPara(
-              "(%s / %s ship" + (deployed.ships != 1 ? "s" : "") + ",  %s / %s total fleet points)",
+              U.i18n("ships_lost_fraction"),
               U.LINE_SPACING,
               Misc.getHighlightColor(),
               new String[]{
@@ -299,7 +294,7 @@ public class BattleRecordIntel extends BaseFleetHistoryIntelPlugin {
     // player officers are always recovered after battle???
     if (lost.officers > 0 && side.equals(br.enemySide)) {
       t.addPara(
-              "%s officer" + (lost.officers > 1 ? "s" : "") + " killed in action",
+              U.i18n(lost.officers == 1 ? "officer_lost" : "officers_lost"),
               U.LINE_SPACING,
               Misc.getHighlightColor(),
               lost.officers + ""
@@ -316,7 +311,7 @@ public class BattleRecordIntel extends BaseFleetHistoryIntelPlugin {
     CustomPanelAPI container = panel.createCustomPanel(width, 0, null);
 
     TooltipMakerAPI header = container.createUIElement(width, 0, false);
-    header.addSectionHeading("Fleets involved", Alignment.MID, 0);
+    header.addSectionHeading(U.i18n("fleets_header"), Alignment.MID, 0);
     container.addUIElement(header).inTL(0, 0);
 
     TooltipMakerAPI playerSideSection = createSideSection(container, width, br.playerSide.fleets);
@@ -390,7 +385,7 @@ public class BattleRecordIntel extends BaseFleetHistoryIntelPlugin {
     CustomPanelAPI container = panel.createCustomPanel(width, 0, null);
 
     TooltipMakerAPI header = container.createUIElement(width, 0, false);
-    header.addSectionHeading("Commanders and leaders", Alignment.MID, 0);
+    header.addSectionHeading(U.i18n("commanders_header"), Alignment.MID, 0);
     container.addUIElement(header).inTL(0, 0);
 
     TooltipMakerAPI playerOfficerSection = createOfficerSection(container, width, br.playerSide.officers);
@@ -461,7 +456,7 @@ public class BattleRecordIntel extends BaseFleetHistoryIntelPlugin {
     CustomPanelAPI container = panel.createCustomPanel(width, 0, null);
 
     TooltipMakerAPI header = container.createUIElement(width, 0, false);
-    header.addSectionHeading("Deployed forces", Alignment.MID, 0);
+    header.addSectionHeading(U.i18n("strengths_header"), Alignment.MID, 0);
     container.addUIElement(header).inTL(0, 0);
 
     TooltipMakerAPI playerStrengthSection = createStrengthSection(container, width, br.playerSide);
@@ -541,7 +536,7 @@ public class BattleRecordIntel extends BaseFleetHistoryIntelPlugin {
     innerContainer.addUIElement(playerShipIndicator).inTL(0, 0);    
     if (ShipBattleResult.isLost(s.status)) {
       TooltipMakerAPI explo = innerContainer.createUIElement(IMG_SIZE * EXPLO_SCALE_FACTOR, IMG_SIZE * EXPLO_SCALE_FACTOR, false);
-      explo.addImage(Global.getSettings().getSpriteName("test", "explosion"), IMG_SIZE * EXPLO_SCALE_FACTOR, IMG_SIZE * EXPLO_SCALE_FACTOR, 0);
+      explo.addImage(Global.getSettings().getSpriteName("fh", "explosion"), IMG_SIZE * EXPLO_SCALE_FACTOR, IMG_SIZE * EXPLO_SCALE_FACTOR, 0);
       innerContainer.addUIElement(explo).inMid();
     }
     outerContainer.addComponent(innerContainer);
@@ -602,7 +597,7 @@ public class BattleRecordIntel extends BaseFleetHistoryIntelPlugin {
 
     if (lost == total) {
       TooltipMakerAPI explo = innerContainer.createUIElement(IMG_SIZE * EXPLO_SCALE_FACTOR, IMG_SIZE * EXPLO_SCALE_FACTOR, false);
-      explo.addImage(Global.getSettings().getSpriteName("test", "explosion"), IMG_SIZE * EXPLO_SCALE_FACTOR, IMG_SIZE * EXPLO_SCALE_FACTOR, 0);
+      explo.addImage(Global.getSettings().getSpriteName("fh", "explosion"), IMG_SIZE * EXPLO_SCALE_FACTOR, IMG_SIZE * EXPLO_SCALE_FACTOR, 0);
       innerContainer.addUIElement(explo).inMid();
     }
 
@@ -614,7 +609,8 @@ public class BattleRecordIntel extends BaseFleetHistoryIntelPlugin {
   @Override
   public void createIntelInfo(TooltipMakerAPI t, ListInfoMode mode) {
     BattleRecord br = getBattleRecord();
-    t.addPara("%s vs. %s",
+    t.addPara(
+            U.i18n("battle_versus"),
             0,
             new Color[]{
               Misc.getHighlightColor(),

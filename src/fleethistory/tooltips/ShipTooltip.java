@@ -56,22 +56,36 @@ public class ShipTooltip implements TooltipMakerAPI.TooltipCreator {
       if (logEntry != null) {
         ShipBattleRecord sbr = (ShipBattleRecord) logEntry.event;
         if (sbr.getFleetPoints() > 0) {
+          
           String str = "";
           ArrayList<String> params = new ArrayList<>();
 
           int kills = sbr.getKills();
-          if (kills > 0) {
-            str += "%s kill" + (kills > 1 ? "s" : "") + ", ";
-            params.add(kills + "");
-          }
-
           int assists = sbr.getAssists();
-          if (assists > 0) {
-            str += "%s assist" + (assists > 1 ? "s" : "") + ", ";
+          if(kills > 0 && assists > 0) {
+            str = String.format(
+                    "%s, %s %s",
+                    U.i18n(kills == 1 ? "kill_count" : "kills_count"),
+                    U.i18n(assists == 1 ? "assist_count" : "assists_count"),
+                    U.i18n("fp_count")
+            );
+            params.add(kills + "");
+            params.add(assists + "");
+          } else if (kills > 0) {
+            str = String.format(
+                    "%s %s",
+                    U.i18n(kills == 1 ? "kill_count" : "kills_count"),
+                    U.i18n("fp_count")
+            );
+            params.add(kills + "");
+          } else if (assists > 0) {
+            str = String.format(
+                    "%s %s",
+                    U.i18n(assists == 1 ? "assist_count" : "assists_count"),
+                    U.i18n("fp_count")
+            );
             params.add(assists + "");
           }
-
-          str += "%s total FP";
           params.add(sbr.getFleetPoints() + "");
 
           tooltip.addPara(str, 0, Misc.getHighlightColor(), params.toArray(new String[params.size()]));

@@ -36,7 +36,7 @@ public class ShipRecovery implements ShipEvent {
   @Override
   public void render(CustomPanelAPI panel, float width, float height) {
     TooltipMakerAPI t = panel.createUIElement(width, height, false);
-    t.addPara("Recovered in %s", U.LINE_SPACING, Misc.getHighlightColor(), this.getLocation());
+    t.addPara(U.i18n("recovered_in"), U.LINE_SPACING, Misc.getHighlightColor(), this.getLocation());
     panel.addUIElement(t);
     panel.getPosition().setSize(width, t.getPosition().getHeight());
   }

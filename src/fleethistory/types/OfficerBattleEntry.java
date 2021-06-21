@@ -5,16 +5,12 @@
  */
 package fleethistory.types;
 
-import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.ui.CustomPanelAPI;
 import com.fs.starfarer.api.ui.TooltipMakerAPI;
 import com.fs.starfarer.api.util.Misc;
 import fleethistory.U;
 import fleethistory.shipevents.ShipBattleRecord;
-import java.awt.Color;
-import java.util.ArrayList;
-import java.util.HashMap;
-import org.apache.log4j.Logger;
+
 
 /**
  *
@@ -93,7 +89,7 @@ public class OfficerBattleEntry extends OfficerLogEntry {
 //    panel.addUIElement(shipImg).inTL(0, 0);
     TooltipMakerAPI shipInfo = panel.createUIElement(width - imageSize, 0, false);
     shipInfo.addPara(
-            "Commanded %s, %s",
+            U.i18n("officer_command_string"),
             0,
             Misc.getBrightPlayerColor(),
             si.getShipName(),

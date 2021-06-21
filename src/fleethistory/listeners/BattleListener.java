@@ -25,7 +25,6 @@ import fleethistory.shipevents.ShipBattleRecord;
 import fleethistory.types.ShipInfo;
 import fleethistory.types.ShipLog;
 import fleethistory.U;
-import fleethistory.types.OfficerLog;
 import fleethistory.types.ShipBattleResult;
 import fleethistory.types.ShipLogEntry;
 
@@ -124,7 +123,7 @@ public class BattleListener extends BaseCampaignEventListener {
       br = new BattleRecord(battleRecordKey, timestamp, battleLocation, enemyFactionId, enemyFleetName, result.didPlayerWin());
       // TODO to handle battles with multiple engagements: if battlerecord with same timestamp, location, coords already exists, merge
       if (battleWasAtStation) {
-        br.inOrAt = "at";
+        br.inOrAt = U.i18n("at");
       }
 
     }

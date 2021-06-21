@@ -32,7 +32,7 @@ public class BattleRecord {
   private String enemyFleetName;
   public BattleRecordSideInfo playerSide;
   public BattleRecordSideInfo enemySide;
-  public String inOrAt = "in";  // in <star system>; at <station>
+  public String inOrAt = U.i18n("in");  // in <star system>; at <station>
   public boolean playerWon = false;
   public List<BattleRecordExtraInfo> extraInfo;
 
@@ -125,7 +125,7 @@ public class BattleRecord {
       if (c.isPlayerFleet()) {
         if (c.getFaction().getDisplayName().equals("player")) {
           // if no player-founded faction yet, just use "Playername's Fleet"
-          fleetName = Global.getSector().getPlayerPerson().getNameString() + "'s Fleet";
+          fleetName = String.format(U.i18n("player_fleet_name"), Global.getSector().getPlayerPerson().getNameString());
         } else {
           fleetName = c.getFullName();
         }

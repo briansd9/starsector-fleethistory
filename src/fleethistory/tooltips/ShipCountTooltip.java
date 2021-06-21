@@ -48,27 +48,33 @@ public class ShipCountTooltip implements TooltipMakerAPI.TooltipCreator {
 
     if (lost == 0) {
       if(!isStation) {
-        tooltip.addPara("%s deployed", 0, Misc.getHighlightColor(), total + "");
+        tooltip.addPara(U.i18n("shipcount_tooltip_deployed"), 0, Misc.getHighlightColor(), total + "");
       }
-      tooltip.addPara("%s total FP", 0, Misc.getHighlightColor(), count.getFP() + "");
+      tooltip.addPara(U.i18n("shipcount_tooltip_total_fp"), 0, Misc.getHighlightColor(), count.getFP() + "");
     } else if (total == lost) {
       if(!isStation) {
-        tooltip.addPara("%s deployed, %s", 0, Misc.getNegativeHighlightColor(), total + "", "no survivors");
+        tooltip.addPara(
+                U.i18n("shipcount_tooltip_nosurvivors_1"), 
+                0,
+                Misc.getNegativeHighlightColor(), 
+                total + "", 
+                U.i18n("shipcount_tooltip_nosurvivors_2")
+        );
       } else {
-        tooltip.addPara("Destroyed", Misc.getNegativeHighlightColor(), 0);
+        tooltip.addPara(U.i18n("shipcount_tooltip_destroyed"), Misc.getNegativeHighlightColor(), 0);
       }
-      tooltip.addPara("%s total FP", 0, Misc.getNegativeHighlightColor(), count.getFP() + "");
+      tooltip.addPara(U.i18n("shipcount_tooltip_total_fp"), 0, Misc.getNegativeHighlightColor(), count.getFP() + "");
     } else {
       Color[] colors = {Misc.getNegativeHighlightColor(), Misc.getHighlightColor()};
       tooltip.addPara(
-              "%s lost of %s deployed",
+              U.i18n("shipcount_tooltip_deployed_fraction"),
               0,
               colors,
               lost + "",
               total + ""
       );
       tooltip.addPara(
-              "%s / %s total FP",
+              U.i18n("shipcount_tooltip_fp_fraction"),
               0,
               colors,
               count.getLostFP() + "",

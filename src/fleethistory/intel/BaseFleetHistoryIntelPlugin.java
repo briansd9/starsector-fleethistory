@@ -7,6 +7,7 @@ package fleethistory.intel;
 
 import com.fs.starfarer.api.impl.campaign.intel.BaseIntelPlugin;
 import com.fs.starfarer.api.ui.SectorMapAPI;
+import fleethistory.U;
 import java.util.Set;
 
 /**
@@ -53,7 +54,7 @@ public class BaseFleetHistoryIntelPlugin extends BaseIntelPlugin {
   @Override
   public Set<String> getIntelTags(SectorMapAPI map) {
     Set<String> tags = super.getIntelTags(map);
-    tags.add("Fleet Action History");
+    tags.add(U.i18n("intel_category_tag"));
     return tags;
   }
 
