@@ -206,6 +206,11 @@
     "officer_skills_gained" : "Gained %s new skills",
     "elite_skill_suffix" : " (elite)",
     
+    "button_ships" : "Ships",
+    "button_officers" : "Officers",
+    "button_battles" : "Battles",
+    "button_settings" : "Settings",
+    
   }
 
 }

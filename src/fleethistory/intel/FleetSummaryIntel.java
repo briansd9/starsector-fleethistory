@@ -91,7 +91,7 @@ public class FleetSummaryIntel extends BaseFleetHistoryIntelPlugin {
 
       TooltipMakerAPI shipViewBtn = panel.createUIElement(150, 25, false);
       shipViewBtn.addAreaCheckbox(
-              "Ships", U.FLEET_HISTORY_VIEW_SHIPS,
+              U.i18n("button_ships"), U.FLEET_HISTORY_VIEW_SHIPS,
               Misc.getBasePlayerColor(),
               Misc.getDarkPlayerColor(),
               (viewMode.equals(U.FLEET_HISTORY_VIEW_SHIPS) && !pd.containsKey(U.FLEET_HISTORY_CONFIG) ? Misc.getHighlightColor() : Misc.getBrightPlayerColor()),
@@ -101,7 +101,7 @@ public class FleetSummaryIntel extends BaseFleetHistoryIntelPlugin {
 
       TooltipMakerAPI captainViewBtn = panel.createUIElement(150, 25, false);
       captainViewBtn.addAreaCheckbox(
-              "Officers", U.FLEET_HISTORY_VIEW_OFFICERS,
+              U.i18n("button_officers"), U.FLEET_HISTORY_VIEW_OFFICERS,
               Misc.getBasePlayerColor(),
               Misc.getDarkPlayerColor(),
               (viewMode.equals(U.FLEET_HISTORY_VIEW_OFFICERS) && !pd.containsKey(U.FLEET_HISTORY_CONFIG) ? Misc.getHighlightColor() : Misc.getBrightPlayerColor()),
@@ -111,7 +111,7 @@ public class FleetSummaryIntel extends BaseFleetHistoryIntelPlugin {
 
       TooltipMakerAPI battleViewBtn = panel.createUIElement(150, 25, false);
       battleViewBtn.addAreaCheckbox(
-              "Battles", U.FLEET_HISTORY_VIEW_BATTLES,
+              U.i18n("button_battles"), U.FLEET_HISTORY_VIEW_BATTLES,
               Misc.getBasePlayerColor(),
               Misc.getDarkPlayerColor(),
               (viewMode.equals(U.FLEET_HISTORY_VIEW_BATTLES) && !pd.containsKey(U.FLEET_HISTORY_CONFIG) ? Misc.getHighlightColor() : Misc.getBrightPlayerColor()),
@@ -121,7 +121,7 @@ public class FleetSummaryIntel extends BaseFleetHistoryIntelPlugin {
 
       TooltipMakerAPI configBtn = panel.createUIElement(150, 25, false);
       configBtn.addAreaCheckbox(
-              "Settings", U.FLEET_HISTORY_CONFIG,
+              U.i18n("button_settings"), U.FLEET_HISTORY_CONFIG,
               Misc.getBasePlayerColor(),
               Misc.getDarkPlayerColor(),
               (pd.containsKey(U.FLEET_HISTORY_CONFIG) ? Misc.getHighlightColor() : Misc.getBrightPlayerColor()),
