@@ -96,7 +96,6 @@ public class ShipTooltip implements TooltipMakerAPI.TooltipCreator {
     if (ShipBattleResult.isLost(info.status)) {
       String status = (info.status.equals(ShipBattleResult.DESTROYED) ? "Destroyed" : "Disabled");
       tooltip.addPara(status, Misc.getNegativeHighlightColor(), 0);
-      Global.getSector().getPlayerStats().addStoryPoints(1);
     }
 
   }
