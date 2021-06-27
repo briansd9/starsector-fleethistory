@@ -22,7 +22,7 @@
     "victory_close" : "Close victory",
     "victory" : "Victory",
 
-    "defeat_heroic" : "Heroic victory",
+    "defeat_heroic" : "Heroic defeat",
     "defeat_utter" : "Utter defeat",
     "defeat_crushing" : "Crushing defeat",
     "defeat_close" : "Close defeat",
@@ -79,7 +79,7 @@
     "battle_settings_header" : "Battle Settings",
     "battle_size" : "Battle Size",
     "battle_size_desc" : "Only display battles with at least this many total fleet points deployed.",
-    "days_ago" : "Battle Size",
+    "days_ago" : "Days Ago",
     "days_ago_desc" : "Only display battles within the selected time period (select 0 to show all).",
     "hide_commanders" : "Hide commanders section",
     "hide_deployed" : "Hide deployed forces section",
