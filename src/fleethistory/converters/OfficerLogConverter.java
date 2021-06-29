@@ -37,7 +37,7 @@ public class OfficerLogConverter implements Converter {
   @Override
   public Object unmarshal(HierarchicalStreamReader reader, UnmarshallingContext context) {
 
-    Logger.getLogger(this.getClass()).info(reader.getAttribute("d"));
+    //Logger.getLogger(this.getClass()).info(reader.getAttribute("d"));
     String[] data = reader.getAttribute("d").split("\\|");
     OfficerLog o = new OfficerLog(data[0], data[1], data[2], Integer.parseInt(data[3]));
     for (int i = 4; i < data.length; i++) {

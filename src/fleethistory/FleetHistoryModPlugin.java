@@ -99,9 +99,12 @@ public class FleetHistoryModPlugin extends BaseModPlugin {
       pd.put(U.FLEET_HISTORY_KILL_DISPLAY, U.KILL_DISPLAY_ICONS);
     }
 
-    // make sure no leftover data from previous run
+  }
+  
+  @Override
+  public void beforeGameSave() {
+    // make sure no leftover data gets written to the save file in the first place! >:\
     U.clearTempBattleData();
-
   }
 
   @Override

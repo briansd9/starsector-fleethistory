@@ -289,7 +289,10 @@ public class BattleListener extends BaseCampaignEventListener {
   @Override
   public void reportBattleFinished(CampaignFleetAPI primaryWinner, BattleAPI battle) {
     
-    if(!battle.isPlayerInvolved()) return;
+    if(!battle.isPlayerInvolved()) {
+      U.clearTempBattleData();
+      return;
+    }
 
     // store timestamp of last completed battle
     long timestamp = Global.getSector().getClock().getTimestamp();
@@ -353,6 +356,7 @@ public class BattleListener extends BaseCampaignEventListener {
 
     // clean up all temp data used in this battle
     U.clearTempBattleData();
+    
   }
 
 }
