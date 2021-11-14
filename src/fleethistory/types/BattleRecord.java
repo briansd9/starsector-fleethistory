@@ -18,6 +18,7 @@ import fleethistory.U;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import org.apache.log4j.Logger;
 
 /**
  *
@@ -225,9 +226,17 @@ public class BattleRecord {
 
     ArrayList<String> completedBountyTargets = new ArrayList<>();
     for (IntelInfoPlugin i : Global.getSector().getIntelManager().getIntel(PersonBountyIntel.class)) {
-      String bountyString = ((PersonBountyIntel) i).getName();
-      if (bountyString.startsWith("Bounty Completed - ")) {
-        completedBountyTargets.add(bountyString.replace("Bounty Completed - ", ""));
+
+      // be paranoid about PersonBountyIntel cast; this is to suppress weird bug in Vayra's Sector unofficial update
+      // with minimal disruption to users
+      try {
+        String bountyString = ((PersonBountyIntel) i).getName();
+        if (bountyString.startsWith("Bounty Completed - ")) {
+          completedBountyTargets.add(bountyString.replace("Bounty Completed - ", ""));
+        }
+      } catch(ClassCastException cce) {
+        Logger.getLogger(BattleRecord.class).error(cce.getLocalizedMessage());
+        return;
       }
     }
 
