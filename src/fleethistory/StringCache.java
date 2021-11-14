@@ -51,7 +51,7 @@ public class StringCache {
       return stringToKey.get(str);
     } else {
       String key = generateKey();
-      Logger.getLogger(StringCache.class).info(String.format("Caching string [%s] with key [%s]", str, key));
+      //Logger.getLogger(StringCache.class).info(String.format("Caching string [%s] with key [%s]", str, key));
       data.append(str).append(U.DELIMITER).append(key).append(U.DELIMITER);
       stringToKey.put(str, key);
       keyToString.put(key, str);
