@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package fleethistory.intel;
 
 import com.fs.starfarer.api.impl.campaign.intel.BaseIntelPlugin;
@@ -10,10 +5,6 @@ import com.fs.starfarer.api.ui.SectorMapAPI;
 import fleethistory.U;
 import java.util.Set;
 
-/**
- *
- * @author joshi
- */
 public class BaseFleetHistoryIntelPlugin extends BaseIntelPlugin {
 
   @Override

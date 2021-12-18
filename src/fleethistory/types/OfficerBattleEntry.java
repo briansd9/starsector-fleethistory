@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package fleethistory.types;
 
 import com.fs.starfarer.api.ui.CustomPanelAPI;
@@ -11,11 +6,6 @@ import com.fs.starfarer.api.util.Misc;
 import fleethistory.U;
 import fleethistory.shipevents.ShipBattleRecord;
 
-
-/**
- *
- * @author joshi
- */
 public class OfficerBattleEntry extends OfficerLogEntry {
 
   private final String shipId;

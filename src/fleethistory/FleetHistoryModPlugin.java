@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package fleethistory;
 
 import fleethistory.intel.FleetSummaryIntel;
@@ -36,10 +31,6 @@ import fleethistory.types.ShipInfo;
 import fleethistory.types.ShipLog;
 import fleethistory.types.ShipLogEntry;
 
-/**
- *
- * @author joshi
- */
 public class FleetHistoryModPlugin extends BaseModPlugin {
 
   private static final Logger log = Global.getLogger(FleetHistoryModPlugin.class);

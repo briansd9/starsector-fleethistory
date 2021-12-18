@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package fleethistory;
 
 import fleethistory.types.ShipLog;
@@ -25,15 +20,7 @@ import fleethistory.intel.ShipLogIntel;
 import fleethistory.types.BattleRecord;
 import fleethistory.types.OfficerLog;
 import fleethistory.types.ShipEvent;
-import fleethistory.types.ShipLogEntry.EventType;
-import java.util.Locale;
-import java.util.Properties;
-import java.util.ResourceBundle;
 
-/**
- *
- * @author joshi
- */
 public class U {
 
   public static final int LINE_SPACING = 5;
@@ -93,8 +80,6 @@ public class U {
           + "!@$%^*()"
           + "_=+[]{}:,./?`";
   private static final int BASE = DIGITS.length();
-
-  private static transient Properties strings = null;
 
   public static String format(float num) {
     return d.format(num);

@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package fleethistory.listeners;
 
 import com.fs.starfarer.api.Global;
@@ -28,10 +23,6 @@ import fleethistory.U;
 import fleethistory.types.ShipBattleResult;
 import fleethistory.types.ShipLogEntry;
 
-/**
- *
- * @author joshi
- */
 public class BattleListener extends BaseCampaignEventListener {
 
   private static final Logger log = Global.getLogger(BattleListener.class);

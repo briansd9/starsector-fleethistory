@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package fleethistory.converters;
 
 import com.thoughtworks.xstream.converters.Converter;
@@ -14,12 +9,7 @@ import fleethistory.U;
 import fleethistory.types.OfficerBattleEntry;
 import fleethistory.types.OfficerLog;
 import fleethistory.types.OfficerSkillEntry;
-import org.apache.log4j.Logger;
 
-/**
- *
- * @author joshi
- */
 public class OfficerLogConverter implements Converter {
 
   @Override

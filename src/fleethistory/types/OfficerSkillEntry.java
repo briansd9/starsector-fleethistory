@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package fleethistory.types;
 
 import com.fs.starfarer.api.Global;
@@ -11,14 +6,9 @@ import com.fs.starfarer.api.ui.CustomPanelAPI;
 import com.fs.starfarer.api.ui.TooltipMakerAPI;
 import com.fs.starfarer.api.util.Misc;
 import fleethistory.U;
-import fleethistory.tooltips.ButtonTooltip;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- *
- * @author joshi
- */
 public class OfficerSkillEntry extends OfficerLogEntry {
 
   private final String level;

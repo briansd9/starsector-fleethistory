@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package fleethistory.types;
 
 import com.fs.starfarer.api.Global;
@@ -11,10 +6,6 @@ import com.fs.starfarer.api.fleet.FleetMemberAPI;
 import com.thoughtworks.xstream.XStream;
 import fleethistory.U;
 
-/**
- *
- * @author joshi
- */
 public class ShipInfo {
 
   private String shipName;

@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package fleethistory.intel;
 
 import fleethistory.U;
@@ -32,12 +27,7 @@ import fleethistory.shipevents.ShipBattleRecordStats;
 import fleethistory.tooltips.ShipKillCountTooltip;
 import fleethistory.types.OfficerLog;
 import fleethistory.types.ShipEvent;
-import java.util.Collection;
 
-/**
- *
- * @author joshi
- */
 public class ShipLogIntel extends BaseFleetHistoryIntelPlugin {
 
   private static final Logger log = Global.getLogger(ShipLogIntel.class);

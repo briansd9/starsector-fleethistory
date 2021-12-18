@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package fleethistory.tooltips;
 
 import com.fs.starfarer.api.combat.ShipHullSpecAPI;
@@ -12,10 +7,6 @@ import fleethistory.U;
 import fleethistory.types.BattleRecordShipCount;
 import java.awt.Color;
 
-/**
- *
- * @author joshi
- */
 public class ShipCountTooltip implements TooltipMakerAPI.TooltipCreator {
 
   private final BattleRecordShipCount count;

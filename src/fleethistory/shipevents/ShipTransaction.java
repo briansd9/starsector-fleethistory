@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package fleethistory.shipevents;
 
 import com.fs.starfarer.api.ui.CustomPanelAPI;
@@ -13,10 +8,6 @@ import java.awt.Color;
 import fleethistory.U;
 import fleethistory.types.ShipEvent;
 
-/**
- *
- * @author joshi
- */
 public class ShipTransaction implements ShipEvent {
   
   public static final String ADDED = "a";

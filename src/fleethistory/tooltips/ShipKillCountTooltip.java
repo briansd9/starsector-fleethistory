@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package fleethistory.tooltips;
 
 import com.fs.starfarer.api.Global;
@@ -12,10 +7,6 @@ import com.fs.starfarer.api.ui.TooltipMakerAPI;
 import com.fs.starfarer.api.util.Misc;
 import fleethistory.U;
 
-/**
- *
- * @author joshi
- */
 public class ShipKillCountTooltip implements TooltipMakerAPI.TooltipCreator {
 
   private final ShipHullSpecAPI hull;

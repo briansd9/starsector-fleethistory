@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package fleethistory.listeners;
 
 import com.fs.starfarer.api.EveryFrameScript;
@@ -10,12 +5,7 @@ import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.characters.PersonAPI;
 import com.fs.starfarer.api.fleet.FleetMemberAPI;
 import fleethistory.U;
-import org.apache.log4j.Logger;
 
-/**
- *
- * @author joshi
- */
 public class OfficerUpdateListener implements EveryFrameScript {
 
   private float elapsedTime = 0;
