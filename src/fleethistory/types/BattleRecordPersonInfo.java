@@ -12,32 +12,54 @@ public class BattleRecordPersonInfo {
   private String spriteId;
   private String shipName;
   private String shipHullId;
+  private String rank;
+  private int level = 0;
+  
   public String shipStatus;
   public boolean isFleetCommander = false;
 
+  public BattleRecordPersonInfo(String name, String spriteId, int level, String rank) {
+    this.setName(name);
+    this.setSpriteId(spriteId);
+    this.setLevel(level);
+    this.setRank(rank);
+  }
+  
   public BattleRecordPersonInfo(String name, String spriteId) {
     this.setName(name);
     this.setSpriteId(spriteId);
   }
   
   public BattleRecordPersonInfo(String compressedString) {
+    
+    Logger.getLogger(this.getClass()).info(compressedString);
+    
     String[] str = compressedString.split("\\|");
+    
+    Logger.getLogger(this.getClass()).info(str.length);
+    
     this.name = str[0];
     this.spriteId = str[1];
     this.shipName = str[2].length() == 0 ? null : str[2];
     this.shipHullId = str[3].length() == 0 ? null : str[3];    
     this.shipStatus = str[4].length() == 0 ? null : str[4];
     this.isFleetCommander = (Integer.parseInt(str[5]) == 1);
+    
+    this.level = (str.length > 6 && str[6].length() > 0) ? (int)U.decodeNum(str[6]) : 0;
+    this.rank = (str.length > 7 && str[7].length() > 0) ? str[7] : null;
+    
   }
   public String getCompressedString() {
     return String.format(
-            "%s|%s|%s|%s|%s|%d",
+            "%s|%s|%s|%s|%s|%d|%s|%s",
             this.name,
             this.spriteId,
             this.shipName == null ? "" : this.shipName,
             this.shipHullId == null ? "" : this.shipHullId,
             this.shipStatus == null ? "" : this.shipStatus,
-            this.isFleetCommander ? 1 : 0
+            this.isFleetCommander ? 1 : 0,
+            this.level == 0 ? "" : U.encodeNum(this.level),
+            this.rank == null ? "" : this.rank
     );
   }
   
@@ -83,7 +105,23 @@ public class BattleRecordPersonInfo {
     if(this.shipHullId == null) return null;
     return U.getCache().getCachedString(this.shipHullId);
   }
+
+  public final void setRank(String str) {
+    this.rank = U.getCache().cacheString(str);
+  }  
+  public String getRank() {
+    if(this.rank == null) return null;
+    return U.getCache().getCachedString(this.rank);
+  }
   
+  public final void setLevel(int level) {
+    this.level = level;
+  }
+  public int getLevel() {
+    return level;
+  }
+
+
   public String getFullShipName() {
     return String.format(
             "%s, %s",

@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package fleethistory.tooltips;
 
 import com.fs.starfarer.api.ui.TooltipMakerAPI;
@@ -12,20 +7,11 @@ import java.awt.Color;
 import fleethistory.types.BattleRecordPersonInfo;
 import fleethistory.types.ShipBattleResult;
 
-/**
- *
- * @author joshi
- */
 public class CaptainTooltip implements TooltipMakerAPI.TooltipCreator {
-  
+
   private final BattleRecordPersonInfo info;
   private final boolean showNameInTooltip;
-  
-  public CaptainTooltip(BattleRecordPersonInfo info) {
-    this.info = info;
-    this.showNameInTooltip = false;
-  }
-  
+
   public CaptainTooltip(BattleRecordPersonInfo info, boolean showNameInTooltip) {
     this.info = info;
     this.showNameInTooltip = showNameInTooltip;
@@ -43,16 +29,46 @@ public class CaptainTooltip implements TooltipMakerAPI.TooltipCreator {
 
   @Override
   public void createTooltip(TooltipMakerAPI tooltip, boolean expanded, Object tooltipParam) {
-    
-    if(this.showNameInTooltip) {
+
+    if (this.showNameInTooltip) {
       tooltip.setParaFontColor(Misc.getHighlightColor());
       tooltip.addPara(info.getName(), 0);
     }
-    
-    if(info.getShipName() != null) {
+
+    if (info.getLevel() > 0) {
+
+      String fmtString = "%s %s";
+      Color[] colors = new Color[]{
+        Misc.getTextColor(),
+        Misc.getHighlightColor()
+      };
+      String[] params = {
+        U.i18n("level"),
+        info.getLevel() + ""
+      };
+
+      if (info.getRank() != null) {
+        fmtString = "%s %s %s";
+        colors = new Color[]{
+          Misc.getTextColor(),
+          Misc.getHighlightColor(),
+          Misc.getTextColor()
+        };
+        params = new String[]{
+          U.i18n("level"),
+          info.getLevel() + "",
+          (info.getRank() == null ? "" : info.getRank())
+        };
+      }
+
+      tooltip.addPara(fmtString, 0, colors, params);
+
+    }
+
+    if (info.getShipName() != null) {
       String shipStatus = "";
-      if(info.shipStatus != null) {
-        switch(info.shipStatus) {
+      if (info.shipStatus != null) {
+        switch (info.shipStatus) {
           case ShipBattleResult.DESTROYED:
             shipStatus = U.i18n("captain_tooltip_destroyed");
             break;
@@ -62,18 +78,18 @@ public class CaptainTooltip implements TooltipMakerAPI.TooltipCreator {
         }
       }
       tooltip.addPara(
-        "%s %s %s",
-        0,
-        new Color[] {
-          Misc.getTextColor(),
-          Misc.getHighlightColor(),
-          Misc.getNegativeHighlightColor()
-        },
-        new String[] {
-          U.i18n(info.isFleetCommander ? "captain_tooltip_commanding_flagship" : "captain_tooltip_commanding"),
-          info.getFullShipName(),
-          shipStatus
-        }
+              "%s %s %s",
+              0,
+              new Color[]{
+                Misc.getTextColor(),
+                Misc.getHighlightColor(),
+                Misc.getNegativeHighlightColor()
+              },
+              new String[]{
+                U.i18n(info.isFleetCommander ? "captain_tooltip_commanding_flagship" : "captain_tooltip_commanding"),
+                info.getFullShipName(),
+                shipStatus
+              }
       );
     }
   }

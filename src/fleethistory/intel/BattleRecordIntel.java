@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package fleethistory.intel;
 
 import com.fs.starfarer.api.Global;
@@ -35,10 +30,6 @@ import java.util.HashMap;
 import java.util.Objects;
 import org.apache.log4j.Logger;
 
-/**
- *
- * @author joshi
- */
 public class BattleRecordIntel extends BaseFleetHistoryIntelPlugin {
 
   private static final Logger log = Global.getLogger(BattleRecordIntel.class);
@@ -405,7 +396,11 @@ public class BattleRecordIntel extends BaseFleetHistoryIntelPlugin {
 
   private TooltipMakerAPI createOfficerSection(CustomPanelAPI container, float width, Collection<BattleRecordPersonInfo> officers) {
     TooltipMakerAPI officerList = container.createUIElement(width / 2f, 0, false);
+    
     if (officers.size() <= 4) {
+      
+      // if 4 or less officers, display one per row, portrait followed by full name
+      
       boolean first = true;
       for (BattleRecordPersonInfo officer : officers) {
         if (officer.getName().length() == 0) {
@@ -420,11 +415,16 @@ public class BattleRecordIntel extends BaseFleetHistoryIntelPlugin {
           officerList.addImageWithText(ICON_SPACING);
         }
         if (officer.getShipName() != null) {
-          officerList.addTooltipToPrevious(new CaptainTooltip(officer), TooltipMakerAPI.TooltipLocation.ABOVE);
+          // no need to show officer name again in tooltip
+          officerList.addTooltipToPrevious(new CaptainTooltip(officer, false), TooltipMakerAPI.TooltipLocation.ABOVE);
         }
       }
       officerList.getPosition().setSize(width / 2f, officers.size() * (IMG_SIZE + ICON_SPACING));
+      
     } else {
+      
+      // for more than 4 officers, display portraits in a grid; no names
+      
       CustomPanelAPI innerContainer = container.createCustomPanel(width / 2f, 0, null);
       int currCounter = 0;
       int positionIncrement = (int) (IMG_SIZE + ICON_SPACING);
@@ -432,7 +432,10 @@ public class BattleRecordIntel extends BaseFleetHistoryIntelPlugin {
       for (final BattleRecordPersonInfo officer : officers) {
         TooltipMakerAPI officerImg = innerContainer.createUIElement(IMG_SIZE, IMG_SIZE, false);
         officerImg.addImage(officer.getSpriteId(), IMG_SIZE, IMG_SIZE, 0);
+        
+        // officer's name only visible in tooltip
         officerImg.addTooltipToPrevious(new CaptainTooltip(officer, true), TooltipMakerAPI.TooltipLocation.ABOVE);
+        
         int xPos = currCounter % elementsPerRow;
         int yPos = currCounter / elementsPerRow;
         innerContainer.addUIElement(officerImg).inTL(xPos * positionIncrement, 10 + yPos * positionIncrement);
