@@ -6,6 +6,10 @@ import com.fs.starfarer.api.fleet.FleetMemberAPI;
 import com.thoughtworks.xstream.XStream;
 import java.util.ArrayList;
 import java.util.List;
+import org.apache.log4j.Logger;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 public class ShipLog implements Comparable<ShipLog> {
 
@@ -23,6 +27,29 @@ public class ShipLog implements Comparable<ShipLog> {
     x.aliasAttribute(ShipLog.class, "id", "i");
     x.aliasAttribute(ShipLog.class, "info", "n");
     x.aliasAttribute(ShipLog.class, "events", "e");
+  }
+  
+  public JSONObject toJSONObject() {
+    
+    JSONObject o = new JSONObject();
+    
+    try {
+      
+      o.put("i", this.id);
+      o.put("n", this.info.getCompressedString());
+      
+      JSONArray evts = new JSONArray();
+      for(ShipLogEntry sle : this.events) {
+        evts.put(sle.getCompressedString());
+      }      
+      o.put("e", evts);
+      
+    } catch(JSONException e) {
+      Logger.getLogger(ShipLog.class).error(e.getMessage(), e);
+    }
+    
+    return o;
+    
   }
   
   public long getTimestamp() {

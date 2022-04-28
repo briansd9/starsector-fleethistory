@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>TODO supply a title</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script>
+      
+      var battleData = {};
+      var miscData = {};
+      var officerData = {};
+      var shipData = {};
+      var stringCache = {};
+      
+      function handleFileSelect(evt) {
+        
+        evt.stopPropagation();
+        evt.preventDefault();
+
+        let files = [ ...evt.dataTransfer.files ].sort( (f1, f2) => f1.name.localeCompare(f2.name) );
+        
+        for (let i = 0; i < files.length; i++) {
+          
+          let n = files[i].name;
+          if(!n.includes("FLEET_HISTORY")) continue;
+          console.log(n);
+          
+          let reader = new FileReader();
+          reader.onload = function(e) {
+            
+            let data = e.target.result;
+            if(!n.includes("FLEET_HISTORY_STRING")) {
+              data = JSON.parse(data);              
+            }
+            
+            if(n.includes("FLEET_HISTORY_BATTLE")) {
+              for(let key in data) {
+                battleData[key] = data[key];
+              }
+            } else if(n.includes("FLEET_HISTORY_OFFICER")) {
+              for(let key in data) {
+                officerData[key] = data[key];
+              }
+            } else if(n.includes("FLEET_HISTORY_SHIP")) {
+              for(let key in data) {
+                shipData[key] = data[key];
+              }
+            } else if(n.includes("FLEET_HISTORY_MISC")) {
+              for(let key in data) {
+                miscData[key] = data[key];
+              }
+            } else if(n.includes("FLEET_HISTORY_STRING")) {
+                
+            }
+            
+          }
+          reader.readAsText(files[i]);
+          
+        }
+        
+      }
+      
+      function handleDragOver(evt) {
+        evt.stopPropagation();
+        evt.preventDefault();
+      }
+      
+    </script>
+  </head>
+  <body>
+    <div id="drop" style="width:500px;height:500px;background-color:#DDD;">drop</div>
+    <script>
+
+      let dropZone = document.getElementById('drop');
+      dropZone.addEventListener('drop', handleFileSelect, false);            
+      dropZone.addEventListener('dragover', handleDragOver, false);            
+      
+    </script>
+  </body>
+</html>

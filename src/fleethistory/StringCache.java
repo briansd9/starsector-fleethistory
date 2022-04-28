@@ -18,7 +18,7 @@ public class StringCache {
   public static void alias(XStream x) {
     x.aliasAttribute(StringCache.class, "data", "d");
   }
-
+  
   public void init() {
     stringToKey = new HashMap<>();
     keyToString = new HashMap<>();
@@ -68,4 +68,8 @@ public class StringCache {
     return key;
   }
 
+  public String getRawData() {
+    return data.toString();
+  }
+        
 }

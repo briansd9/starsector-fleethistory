@@ -32,11 +32,11 @@ public class BattleRecordPersonInfo {
   
   public BattleRecordPersonInfo(String compressedString) {
     
-    Logger.getLogger(this.getClass()).info(compressedString);
+//    Logger.getLogger(this.getClass()).info(compressedString);
     
     String[] str = compressedString.split("\\|");
     
-    Logger.getLogger(this.getClass()).info(str.length);
+//    Logger.getLogger(this.getClass()).info(str.length);
     
     this.name = str[0];
     this.spriteId = str[1];

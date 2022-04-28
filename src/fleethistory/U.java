@@ -5,6 +5,7 @@ import fleethistory.types.ShipLogEntry;
 import fleethistory.types.ShipInfo;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.CampaignClockAPI;
+import com.fs.starfarer.api.campaign.FactionAPI;
 import com.fs.starfarer.api.campaign.comm.IntelManagerAPI;
 import com.fs.starfarer.api.characters.PersonAPI;
 import com.fs.starfarer.api.combat.ShipAPI.HullSize;
@@ -20,10 +21,17 @@ import fleethistory.intel.ShipLogIntel;
 import fleethistory.types.BattleRecord;
 import fleethistory.types.OfficerLog;
 import fleethistory.types.ShipEvent;
+import java.io.IOException;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 public class U {
 
   public static final int LINE_SPACING = 5;
+  public static final int MAX_DATA_FILE_SIZE = 750000;
   private static final DecimalFormat d = new DecimalFormat("#.##");
   private static final Logger log = Global.getLogger(U.class);
 
@@ -61,18 +69,20 @@ public class U {
   public static final String FLEET_HISTORY_HIDE_DEPLOYED = "FLEET_HISTORY_HIDE_DEPLOYED";
   public static final String FLEET_HISTORY_HIDE_INACTIVE = "FLEET_HISTORY_HIDE_INACTIVE";
   public static final String FLEET_HISTORY_CLEAR_ALL = "FLEET_HISTORY_CLEAR_ALL";
-
+  public static final String FLEET_HISTORY_EXPORT_DATA = "FLEET_HISTORY_EXPORT_DATA";
+  
   public static final String BATTLE_LOG = "BATTLE_LOG";
   public static final String KILL_LIST = "KILL_LIST";
   public static final String LOG_VIEW_MODE_KEY = "LOG_VIEW_MODE_KEY";
 
   public static final String MANUAL_BATTLE_INDICATOR = "MANUAL_BATTLE_INDICATOR";
+  public static final String ENGAGEMENT_START_TIMESTAMP = "ENGAGEMENT_START_TIMESTAMP";
 
   public static final String DELIMITER = ";#~";
 
   // don't use these characters:
   // ;#~| delimiters
-  // <>&' require escaping in XML, no space saved
+  // <>&'" require escaping in XML, no space saved
   private static final String DIGITS
           = "0123456789"
           + "abcdefghijklmnopqrstuvwxyz"
@@ -114,7 +124,7 @@ public class U {
     HashMap<String, OfficerLog> officerLogs = getOfficerLogs();
     String officerId = officer.getId();
     if (!officerLogs.containsKey(officerId)) {
-      log.info("Adding new officer log for " + officer.getNameString());
+//      log.info("Adding new officer log for " + officer.getNameString());
       officerLogs.put(officerId, new OfficerLog(officer));
     }
     return getOfficerLogs().get(officerId);
@@ -126,9 +136,7 @@ public class U {
 
   public static void addOfficerBattleEntry(PersonAPI officer, String shipId, long timestamp, String battleRecordId) {
     OfficerLog o = getOfficerLogFor(officer);
-    Logger.getLogger(OfficerLog.class).info(
-            "Adding new officer log entry for " + officer.getNameString() + ": " + shipId + ", " + timestamp + ", " + battleRecordId
-    );
+//    log.info("Adding new officer log entry for " + officer.getNameString() + ": " + shipId + ", " + timestamp + ", " + battleRecordId);
     o.addBattleEntry(shipId, timestamp, battleRecordId);
     updateOfficerLogIntel(officer);
   }
@@ -139,7 +147,7 @@ public class U {
     IntelManagerAPI manager = Global.getSector().getIntelManager();
     OfficerLogIntel i = new OfficerLogIntel(id);
     if (!manager.hasIntel(i)) {
-      log.info("Adding new OfficerLogIntel for id " + id);
+//      log.info("Adding new OfficerLogIntel for id " + id);
       manager.addIntel(i);
     }
 
@@ -204,7 +212,7 @@ public class U {
     if (!U.getBattleRecords().containsKey(key)) {
       U.getBattleRecords().put(key, br);
     } else {
-      log.info("BattleRecord [" + key + "] already in list, ignoring");
+//      log.info("BattleRecord [" + key + "] already in list, ignoring");
     }
   }
 
@@ -231,7 +239,7 @@ public class U {
     IntelManagerAPI manager = Global.getSector().getIntelManager();
     ShipLogIntel i = new ShipLogIntel(id);
     if (!manager.hasIntel(i)) {
-      log.info("Adding new ShipLogIntel for id " + id);
+//      log.info("Adding new ShipLogIntel for id " + id);
       manager.addIntel(i);
     }
 
@@ -302,12 +310,12 @@ public class U {
 
   public static long decodeNum(String s) {
 
-    if(s.equals("")) {
-      return 0;
-    }
+   if(s == null || s.equals("")) {
+     return 0;
+   }
 
-    long value = 0;
-    long placeValue = 1;
+   long value = 0; 
+   long placeValue = 1;
     for (int i = 0; i < s.length(); i++) {
       char digit = s.charAt(i);
       if (digit == '-') {
@@ -327,6 +335,7 @@ public class U {
     U.getPersistentData().remove(U.CURR_BATTLE_CHILD_PARENT_SHIPS);
     U.getPersistentData().remove(U.CURR_BATTLE_SHIP_BATTLE_RECORDS);
     U.getPersistentData().remove(U.CURR_BATTLE_RECORD_KEY);
+    U.getPersistentData().remove(U.ENGAGEMENT_START_TIMESTAMP);
   }
   
   public static String i18n(String key) {
@@ -334,8 +343,131 @@ public class U {
       return Global.getSettings().getString("fleethistory", key);
     } catch(Exception e) {
       log.error("Error getting string with key [" + key + "]: " + e.getMessage());
-      return "Error getting string with key [" + key + "]";
+      return "[" + key + "]";
     }
+  }
+  
+  public static void writeData(String filename, String tag, int num, String data) throws IOException {
+
+    String name = filename + "_" + tag + "_" + num;
+    log.info("Writing " + name + " with length " + data.length());
+    Global.getSettings().writeTextFileToCommon(name, data);
+    
+  }
+  
+  public static void exportData() throws IOException, JSONException {
+    
+    String identifier = String.format(
+            "%s_%s_FLEET_HISTORY", 
+            Global.getSector().getPlayerPerson().getName().getFirst(),
+            Global.getSector().getPlayerPerson().getName().getLast()
+    );
+    int totalDataLength = 0;
+    int currFile = 0;
+    
+    // faction data is written to a different file; 
+    // store for later while exporting battles
+    Set<FactionAPI> factionList = new HashSet<>();
+    factionList.add(Global.getSector().getPlayerFaction());
+    
+    // write battle log data
+    JSONObject battleData = new JSONObject();
+    for(Map.Entry<String, BattleRecord> e : U.getBattleRecords().entrySet()) {
+      
+      // store enemy faction for later
+      factionList.add(Global.getSector().getFaction(e.getValue().getEnemyFactionId()));
+      
+      String brKey = e.getKey();
+      JSONObject brData = e.getValue().toJSONObject();
+      battleData.put(brKey, brData);
+      totalDataLength += brKey.length() + brData.toString().length();
+
+      if(totalDataLength > MAX_DATA_FILE_SIZE) {
+        writeData(identifier, "BATTLE", currFile, battleData.toString());
+        battleData = new JSONObject();
+        totalDataLength = 0;
+        currFile++;
+      }
+    }
+    
+    if(totalDataLength > 0) {
+      writeData(identifier, "BATTLE", currFile, battleData.toString());
+    }
+    totalDataLength = 0;
+    currFile = 0;
+    
+    // write officer data
+    JSONObject officerData = new JSONObject();      
+    for(Map.Entry<String, OfficerLog> e : U.getOfficerLogs().entrySet()) {      
+      String olKey = e.getKey();
+      JSONObject olData  = e.getValue().toJSONObject();
+      officerData.put(olKey, olData);
+      totalDataLength += olKey.length() + olData.toString().length();
+      
+      if(totalDataLength > MAX_DATA_FILE_SIZE) {
+        writeData(identifier, "OFFICER", currFile, officerData.toString());
+        officerData = new JSONObject();
+        totalDataLength = 0;
+        currFile++;
+      }      
+    }
+    
+    if(totalDataLength > 0) {
+      writeData(identifier, "OFFICER", currFile, officerData.toString());
+    }
+    totalDataLength = 0;
+    currFile = 0;
+    
+    // write ship data
+    JSONObject shipData = new JSONObject();
+    for(Map.Entry<String, ShipLog> e : U.getShipLogs().entrySet()) {
+      String sdKey = e.getKey();
+      JSONObject sdData = e.getValue().toJSONObject();
+      shipData.put(sdKey, sdData);
+      totalDataLength += sdKey.length() + sdData.toString().length();
+      
+      if(totalDataLength > MAX_DATA_FILE_SIZE) {
+        writeData(identifier, "SHIP", currFile, shipData.toString());
+        shipData = new JSONObject();
+        totalDataLength = 0;
+        currFile++;
+      }      
+    }
+
+    if(totalDataLength > 0) {
+      writeData(identifier, "SHIP", currFile, shipData.toString());
+    }
+    totalDataLength = 0;
+    currFile = 0;
+        
+    // write string cache
+    String cacheData = U.getCache().getRawData();
+    int cacheLength = cacheData.length();
+    for(int i = 0; i < cacheLength; i += MAX_DATA_FILE_SIZE) {
+      writeData(identifier, "STRING", currFile, cacheData.substring(i, Math.min(cacheLength, i + MAX_DATA_FILE_SIZE)));
+      currFile++;
+    }
+    
+    JSONObject miscData = new JSONObject();    
+    JSONObject factions = new JSONObject();
+    for(FactionAPI f : factionList) {
+      factions.put(
+              f.getId(),
+              String.format(
+                      "%s|%s|%s|%s|%s|%s",
+                      f.getDisplayName(),
+                      f.getDisplayNameLong(),
+                      U.encodeNum(f.getColor().getRGB()),
+                      U.encodeNum(f.getBaseUIColor().getRGB()),
+                      U.encodeNum(f.getBrightUIColor().getRGB()),
+                      U.encodeNum(f.getDarkUIColor().getRGB())                                
+              )
+      );
+    }
+    miscData.put("FACTIONS", factions);    
+    writeData(identifier, "MISC", 0, miscData.toString());
+
+      
   }
 
 }

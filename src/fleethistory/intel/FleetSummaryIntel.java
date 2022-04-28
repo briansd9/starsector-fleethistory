@@ -23,6 +23,10 @@ import fleethistory.types.BattleRecord;
 import fleethistory.types.BattleRecordSideCount;
 import fleethistory.types.FactionBattleHistory;
 import fleethistory.types.OfficerLog;
+import java.io.IOException;
+import java.util.ArrayList;
+import org.apache.log4j.Logger;
+import org.json.JSONException;
 
 public class FleetSummaryIntel extends BaseFleetHistoryIntelPlugin {
 
@@ -660,7 +664,7 @@ public class FleetSummaryIntel extends BaseFleetHistoryIntelPlugin {
     HashMap<String, Object> pd = U.getPersistentData();
 
     TooltipMakerAPI t = panel.createUIElement(width, height, true);
-    CustomPanelAPI container = panel.createCustomPanel(width, 600, null);
+    CustomPanelAPI container = panel.createCustomPanel(width, 800, null);
 
     TooltipMakerAPI battleFiltersHeader = container.createUIElement(250, 25, false);
     battleFiltersHeader.setParaInsigniaVeryLarge();
@@ -870,9 +874,16 @@ public class FleetSummaryIntel extends BaseFleetHistoryIntelPlugin {
     spacer.addButton("", "", Color.decode("#222222"), Color.decode("#222222"), width * 0.94f, 1, 0);
     container.addUIElement(spacer).belowLeft(hideInactiveDesc, 25).setXAlignOffset(-70);
 
+    TooltipMakerAPI exportDataBtn = container.createUIElement(150, 25, false);
+    exportDataBtn.addAreaCheckbox(U.i18n("export_data"), U.FLEET_HISTORY_EXPORT_DATA, Misc.getBasePlayerColor(), Misc.getDarkPlayerColor(), Misc.getBrightPlayerColor(), 150, 25, 0);
+    container.addUIElement(exportDataBtn).belowLeft(spacer, 25).setXAlignOffset(15);
+    TooltipMakerAPI exportDataInfo = container.createUIElement(width * 0.75f, 0, false);
+    exportDataInfo.addPara(U.i18n("export_data_desc"), 0);
+    container.addUIElement(exportDataInfo).rightOfMid(exportDataBtn, 15);
+    
     TooltipMakerAPI clearDataBtn = container.createUIElement(150, 25, false);
     clearDataBtn.addAreaCheckbox(U.i18n("clear_all_data"), U.FLEET_HISTORY_CLEAR_ALL, Misc.getNegativeHighlightColor(), Color.decode("#442200"), Misc.getNegativeHighlightColor(), 150, 25, 0);
-    container.addUIElement(clearDataBtn).belowLeft(spacer, 25).setXAlignOffset(15);
+    container.addUIElement(clearDataBtn).belowLeft(exportDataBtn, 25);
     TooltipMakerAPI clearDataInfo = container.createUIElement(width * 0.75f, 0, false);
     clearDataInfo.addPara(U.i18n("clear_all_data_desc"), 0);
     container.addUIElement(clearDataInfo).rightOfMid(clearDataBtn, 15);
@@ -884,22 +895,44 @@ public class FleetSummaryIntel extends BaseFleetHistoryIntelPlugin {
 
   @Override
   public boolean doesButtonHaveConfirmDialog(Object buttonId) {
-    return U.FLEET_HISTORY_CLEAR_ALL.equals(buttonId);
+    return U.FLEET_HISTORY_CLEAR_ALL.equals(buttonId) || U.FLEET_HISTORY_EXPORT_DATA.equals(buttonId);
   }
 
   @Override
-  public void createConfirmationPrompt(Object buttonId, TooltipMakerAPI prompt) {
-
-    if (!U.FLEET_HISTORY_CLEAR_ALL.equals(buttonId)) {
+  public void createConfirmationPrompt(Object id, TooltipMakerAPI prompt) {
+    
+    if (!(id instanceof String)) {
       return;
     }
-
-    prompt.addPara(U.i18n("clear_prompt_1"), 0, Misc.getHighlightColor(), U.i18n("clear_prompt_2"));
-    prompt.addPara("", 0);
-    prompt.addPara(U.i18n("clear_prompt_3"), 0);
+    
+    String buttonId = (String)id;
+    
+    switch(buttonId) {      
+      case U.FLEET_HISTORY_EXPORT_DATA:        
+        prompt.addPara(U.i18n("export_success_1"), 0);
+        prompt.addPara("", 0);
+        prompt.setParaFontColor(Misc.getHighlightColor());
+        prompt.addPara(U.i18n("export_success_2"), 0);
+        break;
+      case U.FLEET_HISTORY_CLEAR_ALL:
+        prompt.addPara(U.i18n("clear_prompt_1"), 0, Misc.getHighlightColor(), U.i18n("clear_prompt_2"));
+        prompt.addPara("", 0);
+        prompt.addPara(U.i18n("clear_prompt_3"), 0);
+        break;
+    }
 
   }
+  
+  @Override
+  public String getConfirmText(Object buttonId) {
+    return "Confirm";
+  }
 
+  @Override
+  public String getCancelText(Object buttonId) {
+    return "Cancel";
+  }
+  
   @Override
   public void buttonPressConfirmed(Object id, IntelUIAPI ui) {
 
@@ -912,6 +945,17 @@ public class FleetSummaryIntel extends BaseFleetHistoryIntelPlugin {
     if (buttonId.equals(U.FLEET_HISTORY_CLEAR_ALL)) {
       FleetHistoryModPlugin.clearAllData();
       ui.recreateIntelUI();
+      return;
+    } else if(buttonId.equals(U.FLEET_HISTORY_EXPORT_DATA)) {      
+      try {
+        U.exportData();
+        //ArrayList<String> arr = (ArrayList<String>) U.getPersistentData().get(U.EXPORT_DATA_FILENAMES);
+      } catch(IOException|JSONException ex) {          
+        Logger.getLogger(this.getClass()).info(ex.getMessage(), ex);          
+      } finally {          
+        ui.recreateIntelUI();
+        ui.updateUIForItem(this);
+      }      
       return;
     }
 

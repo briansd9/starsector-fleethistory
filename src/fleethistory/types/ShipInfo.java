@@ -61,9 +61,18 @@ public class ShipInfo {
   public String toString() {
     return this.getShipName() + ", " + this.getHullSpec().getNameWithDesignationWithDashClass();
   }
-
+  
   public int getFP() {
     return this.getHullSpec().getFleetPoints();
   }
 
+  public String getCompressedString() {
+    return String.format(
+            "%s|%s|%s",
+            this.shipName == null ? "" : this.shipName,
+            this.hullId,
+            this.damagePct == 0 ? "" : U.format(this.damagePct)
+    );
+  }
+  
 }

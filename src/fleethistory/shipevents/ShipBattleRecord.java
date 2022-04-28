@@ -54,6 +54,20 @@ public class ShipBattleRecord implements ShipEvent {
     x.aliasAttribute(ShipBattleRecord.class, "recovered", "r");
 
   }
+  
+  @Override
+  public String getCompressedString() {
+    return String.format(
+            "%s|%s|%s|%s|%s|%s",
+            this.battleRecordId,
+            this.statsCompressedString,
+            U.encodeNum(this.totalDamageDealt),
+            U.format(this.health),
+            this.result,
+            this.recovered ? 1 : 0
+    );
+  }
+  
 
   public void addShip(ShipInfo s) {
     this.tempShipsKilledList.add(s);

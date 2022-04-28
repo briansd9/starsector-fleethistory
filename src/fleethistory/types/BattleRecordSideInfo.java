@@ -11,13 +11,20 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import org.apache.log4j.Logger;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
-public class BattleRecordSideInfo {
+public class BattleRecordSideInfo implements JSONConvertible {
 
   public transient Map<String, BattleRecordFleetInfo> tempFleets;
   public transient Map<String, BattleRecordPersonInfo> tempOfficers;
   public transient Map<String, BattleRecordShipInfo> tempShips;
   public transient boolean finalized = false;
+  
+  public transient BattleRecordSideCount deployedCount;
+  public transient BattleRecordSideCount lostCount;
+  
 
   public List<BattleRecordFleetInfo> fleets;
   public List<BattleRecordPersonInfo> officers;
@@ -32,6 +39,45 @@ public class BattleRecordSideInfo {
     this.tempShips = new LinkedHashMap<>();
   }
 
+  @Override
+  public JSONObject toJSONObject() {
+
+    JSONObject obj = new JSONObject();    
+
+    try {
+
+      JSONArray f = new JSONArray();
+      for(BattleRecordFleetInfo fleet : this.fleets) {
+        f.put(fleet.getCompressedString());
+      }
+      obj.put("f", f);
+      
+      JSONArray o = new JSONArray();
+      for(BattleRecordPersonInfo officer : this.officers) {
+        o.put(officer.getCompressedString());
+      }
+      obj.put("o", o);
+      
+      JSONArray s = new JSONArray();
+      for(BattleRecordShipInfo ship : this.ships) {
+        s.put(ship.getCompressedString());
+      }
+      obj.put("s", s);
+
+      JSONArray c = new JSONArray();
+      for(BattleRecordShipCount shipCount : this.shipCounts) {
+        c.put(shipCount.getCompressedString());
+      }
+      obj.put("c", c);
+      
+    } catch(JSONException e) {
+      Logger.getLogger(BattleRecordSideInfo.class).error(e.getMessage(), e);
+    }
+
+    return obj;
+    
+  }
+  
   public void finalizeStats() {
     
     if(this.finalized) {
@@ -100,6 +146,10 @@ public class BattleRecordSideInfo {
   }
 
   public BattleRecordSideCount getDeployedCount() {
+    
+    if(this.deployedCount != null) {
+      return this.deployedCount;
+    }
 
     BattleRecordSideCount bc = new BattleRecordSideCount();
     bc.officers = this.officers.size();
@@ -152,11 +202,16 @@ public class BattleRecordSideInfo {
       }      
     }
     
+    this.deployedCount = bc;
     return bc;
     
   }
 
   public BattleRecordSideCount getLostCount() {
+    
+    if(this.lostCount != null) {
+      return this.lostCount;
+    }
     
     BattleRecordSideCount bc = new BattleRecordSideCount();
     
@@ -221,6 +276,7 @@ public class BattleRecordSideInfo {
       }
     }
     
+    this.lostCount = bc;
     return bc;
     
   }

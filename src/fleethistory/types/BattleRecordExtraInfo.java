@@ -18,9 +18,5 @@ public class BattleRecordExtraInfo {
     x.aliasAttribute(BattleRecordExtraInfo.class, "key", "k");
     x.aliasAttribute(BattleRecordExtraInfo.class, "data", "d");
   }
-  
-  public static void createBountyExtraInfo() {
-    
-  }
 
 }

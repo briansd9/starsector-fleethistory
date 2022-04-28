@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package fleethistory.types;
 
 import com.fs.starfarer.api.Global;
@@ -19,12 +14,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import org.apache.log4j.Logger;
+import org.json.JSONException;
+import org.json.JSONObject;
 
-/**
- *
- * @author joshi
- */
-public class BattleRecord {
+public class BattleRecord implements JSONConvertible {
 
   public String id;
   private String timestamp;
@@ -36,6 +29,9 @@ public class BattleRecord {
   public String inOrAt = U.i18n("in");  // in <star system>; at <station>
   public boolean playerWon = false;
   public List<BattleRecordExtraInfo> extraInfo;
+
+  private transient long battleTime = -1;
+  private String duration;
 
   public BattleRecord(String id, long timestamp, String location, String enemyFactionId, String enemyFleetName, boolean playerWon) {
     this.id = id;
@@ -59,16 +55,55 @@ public class BattleRecord {
       "enemySide", "m",
       "inOrAt", "i",
       "playerWon", "w",
-      "extraInfo", "x"
+      "extraInfo", "x",
+      "duration", "d"
     };
     for (int i = 0; i < aliases.length; i += 2) {
       x.aliasAttribute(BattleRecord.class, aliases[i], aliases[i + 1]);
     }
   }
   
+  @Override
+  public JSONObject toJSONObject() {
+
+    JSONObject o = new JSONObject();
+    
+    try {
+      
+      o.put("a", this.id);
+      o.put("t", this.timestamp);
+      o.put("l", this.location);
+      o.put("e", this.enemyFactionId);
+      o.put("n", this.enemyFleetName);
+      o.put("p", this.playerSide.toJSONObject());
+      o.put("m", this.enemySide.toJSONObject());
+      o.put("i", this.inOrAt);
+      o.put("w", this.playerWon ? 1 : 0);
+      
+      if(this.extraInfo != null) {
+        JSONObject x = new JSONObject();
+        for(BattleRecordExtraInfo i : this.extraInfo) {
+          x.put(i.key, i.data);
+        }
+        o.put("x", x);
+      }
+      
+      if(this.duration != null) {
+        o.put("d", this.duration);
+      }
+      
+    } catch(JSONException e) {
+      Logger.getLogger(BattleRecord.class).error(e.getMessage(), e);
+    }
+      
+    return o;
+              
+  }
+
   public final void setTimestamp(long timestamp) {
     this.timestamp = U.encodeNum(timestamp);
   }
+
   public final long getTimestamp() {
     return U.decodeNum(timestamp);
   }
@@ -148,12 +183,12 @@ public class BattleRecord {
   }
 
   public void setCaptains(BattleRecordSideInfo side, EngagementResultForFleetAPI result) {
-    
+
     HashMap<String, Integer> coreCounts = new HashMap<>();
     HashMap<String, String> coreSprites = new HashMap<>();
 
     for (DeployedFleetMemberAPI df : result.getAllEverDeployedCopy()) {
-      if(df.getMember() == null) {
+      if (df.getMember() == null) {
         continue;
       }
       PersonAPI p = df.getMember().getCaptain();
@@ -176,7 +211,12 @@ public class BattleRecord {
             existingPersonInfo.shipStatus = ShipBattleResult.DISABLED;
           }
         } else {
-          BattleRecordPersonInfo info = new BattleRecordPersonInfo(p.getNameString(), p.getPortraitSprite());
+          BattleRecordPersonInfo info = new BattleRecordPersonInfo(
+                  p.getNameString(),
+                  p.getPortraitSprite(),
+                  p.getStats() == null ? 0 : p.getStats().getLevel(),
+                  p.getRank()
+          );
           info.setShip(df.getMember());
           if (result.getDestroyed().contains(df.getMember())) {
             info.shipStatus = ShipBattleResult.DESTROYED;
@@ -226,17 +266,13 @@ public class BattleRecord {
 
     ArrayList<String> completedBountyTargets = new ArrayList<>();
     for (IntelInfoPlugin i : Global.getSector().getIntelManager().getIntel(PersonBountyIntel.class)) {
-
       // be paranoid about PersonBountyIntel cast; this is to suppress weird bug in Vayra's Sector unofficial update
       // with minimal disruption to users
-      try {
+      if (i instanceof PersonBountyIntel) {
         String bountyString = ((PersonBountyIntel) i).getName();
         if (bountyString.startsWith("Bounty Completed - ")) {
           completedBountyTargets.add(bountyString.replace("Bounty Completed - ", ""));
         }
-      } catch(ClassCastException cce) {
-        Logger.getLogger(BattleRecord.class).error(cce.getLocalizedMessage());
-        return;
       }
     }
 
@@ -256,7 +292,19 @@ public class BattleRecord {
     this.extraInfo.add(new BattleRecordExtraInfo(key, data));
   }
 
+  public final void addDuration(long d) {
+    this.battleTime += d;
+  }
+
+  public long getDuration() {
+    if (this.battleTime == -1) {
+      this.battleTime = U.decodeNum(this.duration);
+    }
+    return this.battleTime;
+  }
+
   public void finalizeStats() {
+    this.duration = U.encodeNum(this.battleTime);
     this.playerSide.finalizeStats();
     this.enemySide.finalizeStats();
   }

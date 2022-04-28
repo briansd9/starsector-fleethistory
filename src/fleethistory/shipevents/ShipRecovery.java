@@ -31,4 +31,9 @@ public class ShipRecovery implements ShipEvent {
     panel.getPosition().setSize(width, t.getPosition().getHeight());
   }
   
+  @Override
+  public String getCompressedString() {
+    return this.location;
+  }
+  
 }

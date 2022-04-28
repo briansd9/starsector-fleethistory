@@ -119,11 +119,17 @@ public class BattleListener extends BaseCampaignEventListener {
 
     }
 
+    U.addBattleRecord(battleRecordKey, br);
+    
+    long duration = System.currentTimeMillis() - (Long) U.getPersistentData().get(U.ENGAGEMENT_START_TIMESTAMP);
+    br.addDuration(duration);
+    log.info("Battle duration was " + duration + " ms");
+    
     br.setPlayerFleetInfo(result.getBattle().getPlayerSide());
     br.setEnemyFleetInfo(result.getBattle().getNonPlayerSide());
     br.setPlayerFleetStrength(playerFleet);
     br.setEnemyFleetStrength(enemyFleet);
-    U.addBattleRecord(battleRecordKey, br);
+    
 
     // record outcome for each ship deployed
     for (FleetMemberAPI ship : playerFleet.getDeployed()) {
@@ -253,15 +259,6 @@ public class BattleListener extends BaseCampaignEventListener {
         sbr.totalDamageDealt += Math.round(dmg);
 
         float maxHP = enemyShipMaxHps.get(target.getId());
-//        log.info(
-//                String.format(
-//                        "%s took %s of %s damage (%s)",
-//                        target.getShipName() + " " + target.getHullSpec().getNameWithDesignationWithDashClass(),
-//                        dmg,
-//                        maxHP,
-//                        U.format(dmg * 100 / maxHP)
-//                )
-//        );
 
         // 80% damage = kill; 20% damage = assist
         if (dmg / maxHP > 0.8) {
@@ -308,7 +305,7 @@ public class BattleListener extends BaseCampaignEventListener {
           if (!shipLog.events.isEmpty()) {
             ShipLogEntry lastEntry = shipLog.events.get(shipLog.events.size() - 1);
             // if yes, delete previous "recovered" entry and set status for this entry instead
-            if (lastEntry.type == ShipLogEntry.EventType.RECOVERED && lastEntry.getTimestamp() == timestamp) {
+            if (lastEntry.type.equals(ShipLogEntry.EventType.RECOVERED) && lastEntry.getTimestamp() == timestamp) {
               sbr.recovered = true;
               shipLog.events.remove(lastEntry);
             }

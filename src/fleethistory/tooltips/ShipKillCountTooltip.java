@@ -60,7 +60,7 @@ public class ShipKillCountTooltip implements TooltipMakerAPI.TooltipCreator {
       tooltip.addPara(U.i18n(this.kills == 1 ? "kill_count" : "kills_count"), 0, Misc.getNegativeHighlightColor(), this.kills + "");
     }
     if (this.assists > 0) {
-      tooltip.addPara(U.i18n(this.kills == 1 ? "assist_count" : "assists_count"), 0, Misc.getHighlightColor(), this.assists + "");
+      tooltip.addPara(U.i18n(this.assists == 1 ? "assist_count" : "assists_count"), 0, Misc.getHighlightColor(), this.assists + "");
     }
     tooltip.addPara(U.i18n("shipkillcount_tooltip_total_fp"), 0, Misc.getBrightPlayerColor(), this.fleetPoints + "");
 

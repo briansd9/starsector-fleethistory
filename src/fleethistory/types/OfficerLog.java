@@ -12,8 +12,10 @@ import fleethistory.shipevents.ShipBattleRecord;
 import java.util.ArrayList;
 import java.util.List;
 import org.apache.log4j.Logger;
+import org.json.JSONException;
+import org.json.JSONObject;
 
-public class OfficerLog {
+public class OfficerLog implements JSONConvertible {
 
   private static Logger log = Logger.getLogger(OfficerLog.class);
 
@@ -29,7 +31,7 @@ public class OfficerLog {
   public OfficerLog(PersonAPI p) {
 
     StringCache sc = U.getCache();
-
+    
     this.id = sc.cacheString(p.getId());
 
     String n =  p.getNameString() + (p.isAICore() ? "@" + Integer.toHexString(p.hashCode()) : "");
@@ -145,7 +147,7 @@ public class OfficerLog {
   }
 
   public void addBattleEntry(String shipId, long timestamp, String battleRecordId) {
-    Logger.getLogger(OfficerLog.class).info("Adding new captain log entry " + shipId + ", " + timestamp + ", " + battleRecordId);
+//    Logger.getLogger(OfficerLog.class).info("Adding new captain log entry " + shipId + ", " + timestamp + ", " + battleRecordId);
     this.getEntries().add(new OfficerBattleEntry(shipId, timestamp, battleRecordId));
   }
 
@@ -219,6 +221,25 @@ public class OfficerLog {
     }
     return null;
   }
+  
+  @Override
+  public JSONObject toJSONObject() {
+    
+    JSONObject o = new JSONObject();
+    
+    try {
+      
+      o.put("i", this.getCompressedString());
+      o.put("e", this.getCompressedEntries());
+      o.put("b", this.getStats().getCompressedString());
+      
+    } catch(JSONException e) {
+      Logger.getLogger(OfficerLog.class).error(e.getMessage(), e);
+    }
+    
+    return o;
+    
+  }
 
   public class OfficerBattleStats {
 
@@ -230,6 +251,22 @@ public class OfficerLog {
     public int assists;
     public int fleetPoints;
     public int timesKilled;
+    public int totalTime;
+    
+    public String getCompressedString() {      
+      return String.format(
+        "%s|%s|%s|%s|%s|%s|%s|%s|%s",
+        U.encodeNum(this.firstTimestamp),
+        U.encodeNum(this.lastTimestamp),
+        U.encodeNum(this.battles),
+        U.encodeNum(this.ships),
+        U.encodeNum(this.kills),
+        U.encodeNum(this.assists),
+        U.encodeNum(this.fleetPoints),
+        U.encodeNum(this.timesKilled),
+        U.encodeNum(this.totalTime)
+      );
+    }
     
   }
 

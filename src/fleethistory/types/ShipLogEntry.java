@@ -28,6 +28,15 @@ public class ShipLogEntry {
     x.aliasAttribute(ShipLogEntry.class, "event", "e");
   }
   
+  public String getCompressedString() {
+    return String.format(
+            "%s|%s|%s",
+            this.timestamp,
+            this.type,
+            this.event.getCompressedString()
+    );
+  }
+  
   public class EventType {
     public static final String COMBAT = "c";
     public static final String RECOVERED = "r";

@@ -30,6 +30,7 @@ import fleethistory.types.OfficerLog;
 import fleethistory.types.ShipInfo;
 import fleethistory.types.ShipLog;
 import fleethistory.types.ShipLogEntry;
+import org.apache.log4j.Level;
 
 public class FleetHistoryModPlugin extends BaseModPlugin {
 
@@ -45,6 +46,12 @@ public class FleetHistoryModPlugin extends BaseModPlugin {
   private static ShipBoughtOrSoldListener shipBoughtOrSoldListener;
   private static OfficerUpdateListener officerUpdateListener;
   private static ShipRecoveredListener shipRecoveredListener;
+  
+  @Override
+  public void onApplicationLoad() throws Exception {
+      Logger.getRootLogger().setLevel(Level.ERROR);
+      Logger.getLogger("fleethistory").setLevel(Level.INFO);
+  }  
 
   @Override
   public void onGameLoad(boolean newGame) {
