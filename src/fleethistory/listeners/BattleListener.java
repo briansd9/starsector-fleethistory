@@ -150,12 +150,22 @@ public class BattleListener extends BaseCampaignEventListener {
       ShipBattleRecord existingRecord = (ShipBattleRecord) shipBattleRecords.get(ship);
       existingRecord.result = result;
       if (result.equals(ShipBattleResult.DEPLOYED) || result.equals(ShipBattleResult.RETREATED)) {
-        existingRecord.health = Float.parseFloat(U.format(ship.getRepairTracker().computeRepairednessFraction()));
+        // 2022-04-29 try to detect what's breaking getRepairednessFraction
+        try {
+          existingRecord.health = Float.parseFloat(U.format(ship.getRepairTracker().computeRepairednessFraction()));
+        } catch(NumberFormatException e) {
+          existingRecord.health = 1000;
+        }
       }
     } else {
       ShipBattleRecord sbr = new ShipBattleRecord(br.id, result);
       if (result.equals(ShipBattleResult.DEPLOYED) || result.equals(ShipBattleResult.RETREATED)) {
-        sbr.health = Float.parseFloat(U.format(ship.getRepairTracker().computeRepairednessFraction()));
+        // 2022-04-29 try to detect what's breaking getRepairednessFraction
+        try {
+          sbr.health = Float.parseFloat(U.format(ship.getRepairTracker().computeRepairednessFraction()));
+        } catch(NumberFormatException e) {
+          sbr.health = 1000;
+        }
       }
       shipBattleRecords.put(ship, sbr);
     }

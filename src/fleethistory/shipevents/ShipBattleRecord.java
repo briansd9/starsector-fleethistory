@@ -218,6 +218,15 @@ public class ShipBattleRecord implements ShipEvent {
             strings.toArray(new String[strings.size()])
     );
 
+    // 2022-04-29 try to detect what's breaking getRepairednessFraction
+    if(health == 1000) {
+      t.addPara(
+              "ERROR this should never happen! Please send a screenshot to the mod author @briansd9",
+              Color.RED,
+              U.LINE_SPACING
+      );
+    }
+    
   }
 
   public void renderBattleStats(TooltipMakerAPI t) {
