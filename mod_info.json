@@ -3,9 +3,9 @@
   "name": "Fleet Action History",
   "author": "briansd9",
   "utility": "true",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "description": "Persistent battle history. Individually tracked kill counts for your ships and officers, battle logs, and more.",
-  "gameVersion": "0.95a-RC15",
+  "gameVersion": "0.96a-RC7",
   "jars": ["jars/fleethistory.jar"],
   "modPlugin": "fleethistory.FleetHistoryModPlugin"
 }

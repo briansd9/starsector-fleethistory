@@ -409,7 +409,7 @@ public class BattleRecordIntel extends BaseFleetHistoryIntelPlugin {
         TooltipMakerAPI t = officerList.beginImageWithText(officer.getSpriteId(), IMG_SIZE);
         t.addPara(officer.getName(), 0);
         if(first) {
-          officerList.addImageWithText(U.LINE_SPACING);
+          officerList.addImageWithText((float)U.LINE_SPACING);
           first = false;
         } else {
           officerList.addImageWithText(ICON_SPACING);
