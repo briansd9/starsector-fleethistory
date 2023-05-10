@@ -9,9 +9,9 @@
     {
         "major": 1,
         "minor": 0,
-        "patch": 9
+        "patch": 10
     },
 
-    "starsectorVersion":"0.96a-RC7"
+    "starsectorVersion":"0.96a-RC8"
 
 }
