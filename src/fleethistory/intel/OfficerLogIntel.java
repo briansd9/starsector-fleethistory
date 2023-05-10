@@ -525,7 +525,7 @@ public class OfficerLogIntel extends BaseFleetHistoryIntelPlugin {
       CustomPanelAPI content = panel.createCustomPanel(width, 0, null);
       TooltipMakerAPI killList = content.createUIElement(width, 0, false);
       killList.beginTable(
-              Global.getSector().getPlayerFaction(), 20,
+              Global.getSector().getPlayerFaction(), 20f,
               U.i18n("ship_type"), width * 0.45f,
               U.i18n("kills"), width * 0.1f,
               U.i18n("assists"), width * 0.1f,

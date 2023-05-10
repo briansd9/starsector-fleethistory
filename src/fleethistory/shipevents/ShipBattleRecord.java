@@ -310,7 +310,7 @@ public class ShipBattleRecord implements ShipEvent {
       
       float tableWidth = width * 0.8f;
       t.beginTable(
-              Global.getSector().getPlayerFaction(), 20,
+              Global.getSector().getPlayerFaction(), 20f,
               U.i18n("ship_type"), tableWidth * 0.5f,
               U.i18n("kills"), tableWidth * 0.1f,
               U.i18n("assists"), tableWidth * 0.1f,

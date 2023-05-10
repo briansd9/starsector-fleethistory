@@ -325,7 +325,7 @@ public class ShipLogIntel extends BaseFleetHistoryIntelPlugin {
     } else {
 
       killList.beginTable(
-              Global.getSector().getPlayerFaction(), 20,
+              Global.getSector().getPlayerFaction(), 20f,
               U.i18n("ship_type"), width * 0.45f,
               U.i18n("kills"), width * 0.1f,
               U.i18n("assists"), width * 0.1f,
