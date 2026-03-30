@@ -4,7 +4,6 @@ import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.fleet.FleetMemberAPI;
 import java.util.Objects;
 import fleethistory.U;
-import org.apache.log4j.Logger;
 
 public class BattleRecordPersonInfo {
 
@@ -32,11 +31,7 @@ public class BattleRecordPersonInfo {
   
   public BattleRecordPersonInfo(String compressedString) {
     
-//    Logger.getLogger(this.getClass()).info(compressedString);
-    
     String[] str = compressedString.split("\\|");
-    
-//    Logger.getLogger(this.getClass()).info(str.length);
     
     this.name = str[0];
     this.spriteId = str[1];

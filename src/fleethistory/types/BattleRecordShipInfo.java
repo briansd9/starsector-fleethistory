@@ -4,7 +4,6 @@ import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.combat.ShipHullSpecAPI;
 import com.fs.starfarer.api.fleet.FleetMemberAPI;
 import fleethistory.U;
-import org.apache.log4j.Logger;
 
 public class BattleRecordShipInfo implements Comparable<BattleRecordShipInfo> {
 
