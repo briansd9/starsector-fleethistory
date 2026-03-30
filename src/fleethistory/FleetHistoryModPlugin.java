@@ -49,6 +49,7 @@ public class FleetHistoryModPlugin extends BaseModPlugin {
   
   @Override
   public void onApplicationLoad() throws Exception {
+      // TODO remove before release!
       Logger.getRootLogger().setLevel(Level.ERROR);
       Logger.getLogger("fleethistory").setLevel(Level.INFO);
   }  
