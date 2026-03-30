@@ -9,6 +9,11 @@
     "base_intel_item_header" : "Fleet Action History",
     
     "battle_date" : "Date",
+    "battle_duration" : "Duration",
+    "hours" : "h",
+    "minutes" : "m",
+    "seconds" : "s",
+    "multiple_engagements" : "over %s engagements",
     "battle_location" : "Location",
     "battle_result" : "Result",
     "bounty_claimed" : "Bounty on %s's head claimed",
@@ -37,6 +42,8 @@
     "ships_lost" : "(%s ships, %s total fleet points)",
     "some_ships_lost" : "%s of deployed forces lost",
     "ships_lost_fraction" : "(%s / %s ships,  %s / %s total fleet points)",
+    "fighter_lost" : "%s fighter lost",
+    "fighters_lost" : "%s fighters lost",
     "officer_lost" : "%s officer killed in action",
     "officers_lost" : "%s officers killed in action",
     
@@ -147,6 +154,12 @@
     "deployments" : "Deployed in %s battles",
     "recovery" : "(recovered %s time)",
     "recoveries" : "(recovered %s times)",
+        
+    # total time in combat, for ships
+    "total_deployment_time" : "Total deployment time %s",
+        
+    # total time in combat, for officers
+    "total_combat_time" : "total time in combat %s",
     
     # used for assembling player ships' battle status:
     # <outcome> <in_battle_against> <post_battle>      
@@ -186,6 +199,9 @@
     "captain_tooltip_commanding" : "Commanding",
     "captain_tooltip_destroyed" : "(destroyed)",
     "captain_tooltip_disabled" : "(disabled)",
+
+    # fighters - only losses are logged
+    "shipcount_tooltip_lost" : "%s lost",
     
     "shipcount_tooltip_deployed" : "%s deployed",
     "shipcount_tooltip_total_fp" : "%s total FP",
