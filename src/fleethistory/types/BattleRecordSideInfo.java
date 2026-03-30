@@ -3,6 +3,7 @@ package fleethistory.types;
 import com.fs.starfarer.api.combat.ShipHullSpecAPI;
 import com.fs.starfarer.api.fleet.FleetMemberAPI;
 import fleethistory.U;
+import fleethistory.shipevents.ShipBattleRecord;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -25,13 +26,13 @@ public class BattleRecordSideInfo implements JSONConvertible {
   public transient BattleRecordSideCount deployedCount;
   public transient BattleRecordSideCount lostCount;
   
-
   public List<BattleRecordFleetInfo> fleets;
   public List<BattleRecordPersonInfo> officers;
   // ships = notable ships (player-controlled), stored individually
   public List<BattleRecordShipInfo> ships;
   // shipCounts = other ships, grouped by hull type
   public List<BattleRecordShipCount> shipCounts;
+  public BattleRecordFighterCount fighters;
 
   public BattleRecordSideInfo() {
     this.tempFleets = new LinkedHashMap<>();
@@ -69,6 +70,10 @@ public class BattleRecordSideInfo implements JSONConvertible {
         c.put(shipCount.getCompressedString());
       }
       obj.put("c", c);
+      
+      if(this.fighters != null) {
+        obj.put("d", this.fighters.getCompressedString());
+      }
       
     } catch(JSONException e) {
       Logger.getLogger(BattleRecordSideInfo.class).error(e.getMessage(), e);
@@ -121,6 +126,7 @@ public class BattleRecordSideInfo implements JSONConvertible {
       }
     }
     this.shipCounts = new ArrayList(tempShipCount.values());
+    
     
     Collections.sort(shipCounts, new Comparator<BattleRecordShipCount>() {
       @Override
@@ -273,6 +279,13 @@ public class BattleRecordSideInfo implements JSONConvertible {
             bc.capitalShips += lost;
           }
           break;
+      }
+    }
+    
+    if(this.fighters != null && this.fighters.getCount() != null) {      
+      Map<String, Integer> lostFighterCount = this.fighters.getCount();
+      for(String hullID : lostFighterCount.keySet()) {
+        bc.fighters += lostFighterCount.get(hullID);
       }
     }
     

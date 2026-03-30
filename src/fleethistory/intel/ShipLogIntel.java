@@ -264,7 +264,7 @@ public class ShipLogIntel extends BaseFleetHistoryIntelPlugin {
       int index = 0;
       int elementsPerRow = (int) Math.floor(width / (IMG_SIZE + SPACING));
 
-      float calculatedHeight = (IMG_SIZE + SPACING) * (float) Math.ceil(keys.length / elementsPerRow);
+      float calculatedHeight = (IMG_SIZE + SPACING) * (float) Math.ceil(keys.length * 1.0f / elementsPerRow);
 
       CustomPanelAPI content = panel.createCustomPanel(width, calculatedHeight, null);
 
@@ -397,6 +397,7 @@ public class ShipLogIntel extends BaseFleetHistoryIntelPlugin {
 
     int combats = shipLog.getCombats();
     if (combats > 0) {
+        
       int recovered = shipLog.getRecovered();
       if (recovered > 0) {
         String combatStats = String.format(
@@ -414,6 +415,14 @@ public class ShipLogIntel extends BaseFleetHistoryIntelPlugin {
       } else {
         text.addPara(U.i18n(combats == 1 ? "deployment" : "deployments"), 0, Misc.getBrightPlayerColor(), combats + "");
       }
+      
+      text.addPara(
+              U.i18n("total_deployment_time"),
+              0,
+              Misc.getBrightPlayerColor(),
+              U.durationString(shipLog.getTotalDeploymentTime())
+      );
+      
       int kills = shipLog.getKills();
       int assists = shipLog.getAssists();
       int points = shipLog.getFleetPointScore();

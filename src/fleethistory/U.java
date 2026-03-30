@@ -49,7 +49,11 @@ public class U {
   public static final String CURR_BATTLE_CHILD_PARENT_SHIPS = "CURR_BATTLE_CHILD_PARENT_SHIPS";
   public static final String CURR_BATTLE_TIMESTAMP = "CURR_BATTLE_TIMESTAMP";
   public static final String CURR_BATTLE_SHIP_BATTLE_RECORDS = "CURR_BATTLE_SHIP_BATTLE_RECORDS";
+  public static final String CURR_BATTLE_SHIP_TIMES = "CURR_BATTLE_SHIP_TIMES";
+  public static final String CURR_BATTLE_FIGHTER_COUNTS = "CURR_BATTLE_FIGHTER_COUNTS";
   public static final String CURR_BATTLE_RECORD_KEY = "CURR_BATTLE_RECORD_KEY";
+  public static final int PLAYER_SIDE = 0;
+  public static final int ENEMY_SIDE = 1;
 
   public static final String FLEET_HISTORY_VIEW_MODE = "FLEET_HISTORY_VIEW_MODE";
   public static final String FLEET_HISTORY_VIEW_SHIPS = "FLEET_HISTORY_VIEW_SHIPS";
@@ -76,7 +80,7 @@ public class U {
   public static final String LOG_VIEW_MODE_KEY = "LOG_VIEW_MODE_KEY";
 
   public static final String MANUAL_BATTLE_INDICATOR = "MANUAL_BATTLE_INDICATOR";
-  public static final String ENGAGEMENT_START_TIMESTAMP = "ENGAGEMENT_START_TIMESTAMP";
+  public static final String ENGAGEMENT_DURATION = "ENGAGEMENT_DURATION";
 
   public static final String DELIMITER = ";#~";
 
@@ -188,7 +192,7 @@ public class U {
 
     ShipLog shipLog = getShipLogFor(ship);
 
-    if (shipLog.events.size() > 0) {
+    if (!shipLog.events.isEmpty()) {
       ShipLogEntry lastEvent = shipLog.events.get(shipLog.events.size() - 1);
       if (lastEvent.getTimestamp() == timestamp && lastEvent.type.equals(type) && !lastEvent.type.equals(ShipLogEntry.EventType.COMBAT)) {
         log.info(String.format("Duplicate event added for %s: %s, %s", shipLog.info.toString(), timestamp, type));
@@ -206,6 +210,20 @@ public class U {
   public static String dateString(long timestamp) {
     CampaignClockAPI c = Global.getSector().getClock().createClock(timestamp);
     return c.getShortDate();
+  }
+  
+  public static String durationString(long seconds) {
+      StringBuilder duration = new StringBuilder();
+      if(seconds > 3600) {
+        duration.append(seconds / 3600).append(U.i18n("hours")).append(" ");
+      }
+      if(seconds > 60) {
+        duration.append((seconds / 60) % 60).append(U.i18n("minutes")).append(" ");
+      }
+      if(seconds % 60 != 0) {
+        duration.append(seconds % 60).append(U.i18n("seconds"));
+      }
+      return duration.toString();
   }
 
   public static void addBattleRecord(String key, BattleRecord br) {
@@ -251,7 +269,7 @@ public class U {
     }
     long previousBattleTimestamp = (Long) U.getPersistentData().get(LAST_COMBAT);
     List<ShipLogEntry> shipEvents = U.getShipLogFor(id).events;
-    return (shipEvents.size() > 0 && shipEvents.get(shipEvents.size() - 1).getTimestamp() == previousBattleTimestamp);
+    return (!shipEvents.isEmpty() && shipEvents.get(shipEvents.size() - 1).getTimestamp() == previousBattleTimestamp);
   }
 
   public static float hullSizeScalar(HullSize hullSize) {
@@ -259,7 +277,7 @@ public class U {
       case DEFAULT:
         return 1f;
       case FIGHTER:
-        return .25f;
+        return .64f;
       case FRIGATE:
         return .49f;
       case DESTROYER:
@@ -334,8 +352,10 @@ public class U {
     U.getPersistentData().remove(U.CURR_BATTLE_ENEMY_SHIP_MAX_HITPOINTS);
     U.getPersistentData().remove(U.CURR_BATTLE_CHILD_PARENT_SHIPS);
     U.getPersistentData().remove(U.CURR_BATTLE_SHIP_BATTLE_RECORDS);
+    U.getPersistentData().remove(U.CURR_BATTLE_SHIP_TIMES);
+    U.getPersistentData().remove(U.CURR_BATTLE_FIGHTER_COUNTS);
     U.getPersistentData().remove(U.CURR_BATTLE_RECORD_KEY);
-    U.getPersistentData().remove(U.ENGAGEMENT_START_TIMESTAMP);
+    U.getPersistentData().remove(U.ENGAGEMENT_DURATION);
   }
   
   public static String i18n(String key) {

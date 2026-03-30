@@ -4,13 +4,16 @@ import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.FactionAPI;
 import com.fs.starfarer.api.combat.ShipHullSpecAPI;
 import com.fs.starfarer.api.graphics.SpriteAPI;
+import com.fs.starfarer.api.loading.FighterWingSpecAPI;
 import com.fs.starfarer.api.ui.Alignment;
 import com.fs.starfarer.api.ui.CustomPanelAPI;
 import com.fs.starfarer.api.ui.TooltipMakerAPI;
 import com.fs.starfarer.api.util.Misc;
 import com.thoughtworks.xstream.XStream;
 import fleethistory.U;
+import fleethistory.shipevents.ShipBattleRecord;
 import fleethistory.tooltips.CaptainTooltip;
+import fleethistory.tooltips.FighterCountTooltip;
 import fleethistory.tooltips.ShipCountTooltip;
 import fleethistory.tooltips.ShipTooltip;
 import fleethistory.types.BattleRecord;
@@ -22,11 +25,15 @@ import fleethistory.types.BattleRecordShipInfo;
 import fleethistory.types.BattleRecordSideCount;
 import fleethistory.types.BattleRecordSideInfo;
 import fleethistory.types.ShipBattleResult;
+import fleethistory.types.ShipLog;
+import fleethistory.types.ShipLogEntry;
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.Map.Entry;
 import java.util.Objects;
 import org.apache.log4j.Logger;
 
@@ -68,6 +75,7 @@ public class BattleRecordIntel extends BaseFleetHistoryIntelPlugin {
     try {
 
       HashMap<String, Object> pd = U.getPersistentData();
+      BattleRecord br = getBattleRecord();
 
       float BOX_WIDTH = width * 0.93f;
       float calculatedHeight = 0f;
@@ -84,8 +92,14 @@ public class BattleRecordIntel extends BaseFleetHistoryIntelPlugin {
       panel.addUIElement(sidesSection).belowMid(topInfo, 15);
 
       TooltipMakerAPI lossesSection = createLossesSection(panel, BOX_WIDTH);
-       // height of this section hardcoded - always contains 4 lines of text
-      float lossesSectionOffset = 100; 
+      float lossesSectionOffset = 75;
+      // make extra space for enemy officers lost and fighters lost, if applicable
+      if(br.enemySide.lostCount.officers > 0) {
+        lossesSectionOffset += 25;
+      }
+      if(br.playerSide.lostCount.fighters > 0 || br.enemySide.lostCount.fighters > 0) {
+        lossesSectionOffset += 25;
+      }
       calculatedHeight += lossesSectionOffset;
       panel.addUIElement(lossesSection).belowMid(sidesSection, sidesSectionOffset);
 
@@ -116,10 +130,14 @@ public class BattleRecordIntel extends BaseFleetHistoryIntelPlugin {
   private TooltipMakerAPI createTopInfo(CustomPanelAPI panel, float width) {
 
     BattleRecord br = getBattleRecord();
-
+    
+    // make space for extra lines if any
     float calculatedHeight = 75f;
     if (br.extraInfo != null) {
       calculatedHeight += br.extraInfo.size() * 20;
+    }
+    if(br.getDuration() > 0) {
+      calculatedHeight += 20;
     }
 
     TooltipMakerAPI outerContainer = panel.createUIElement(width, calculatedHeight, false);
@@ -134,7 +152,7 @@ public class BattleRecordIntel extends BaseFleetHistoryIntelPlugin {
     dateText.setParaFontColor(Misc.getHighlightColor());
     dateText.addPara(Global.getSector().getClock().createClock(br.getTimestamp()).getDateString(), 0);
     container.addUIElement(dateText).rightOfMid(dateLabel, 0);
-
+    
     TooltipMakerAPI locLabel = container.createUIElement(labelWidth, 0, false);
     locLabel.addPara(U.i18n("battle_location"), 0);
     container.addUIElement(locLabel).belowMid(dateLabel, U.LINE_SPACING);
@@ -143,9 +161,33 @@ public class BattleRecordIntel extends BaseFleetHistoryIntelPlugin {
     locText.addPara(br.getLocation(), 0);
     container.addUIElement(locText).rightOfMid(locLabel, 0);
 
+    TooltipMakerAPI placeholder = locLabel;
+    
+    long d = br.getDuration();
+    if(d > 0) {
+      
+      StringBuilder durationString = new StringBuilder(U.durationString(d));
+      if(br.getNumEngagements() > 1) {
+        durationString.append(" ").append(String.format(U.i18n("multiple_engagements"), br.getNumEngagements()));
+      }
+      
+      
+      TooltipMakerAPI durationLabel = container.createUIElement(labelWidth, 0, false);
+      durationLabel.addPara(U.i18n("battle_duration"), 0);
+      container.addUIElement(durationLabel).belowMid(placeholder, U.LINE_SPACING);      
+      
+      TooltipMakerAPI durationText = container.createUIElement(width - labelWidth, 0, false);
+      durationText.setParaFontColor(Misc.getHighlightColor());
+      durationText.addPara(durationString.toString(), 0);
+      container.addUIElement(durationText).rightOfMid(durationLabel, 0);      
+      
+      placeholder = durationLabel;
+      
+    }
+    
     TooltipMakerAPI resLabel = container.createUIElement(labelWidth, 0, false);
     resLabel.addPara(U.i18n("battle_result"), 0);
-    container.addUIElement(resLabel).belowMid(locLabel, U.LINE_SPACING);
+    container.addUIElement(resLabel).belowMid(placeholder, U.LINE_SPACING);
     TooltipMakerAPI resText = container.createUIElement(width - labelWidth, 0, false);
     resText.setParaFontColor(Misc.getHighlightColor());
     resText.addPara(getOutcomeString(), 0);
@@ -274,11 +316,25 @@ public class BattleRecordIntel extends BaseFleetHistoryIntelPlugin {
               U.i18n("ships_lost_fraction"),
               U.LINE_SPACING,
               Misc.getHighlightColor(),
-              new String[]{
+              new String[] {
                 lost.ships + "",
                 deployed.ships + "",
                 lost.fp + "",
-                deployed.fp + "",}
+                deployed.fp + ""
+              }
+      );
+    }
+    
+    if(lost.fighters > 0) {
+      t.addPara(
+              U.i18n(lost.fighters != 1 ? "fighters_lost" : "fighter_lost"),
+              U.LINE_SPACING,
+              Misc.getHighlightColor(),
+              new String[] {
+                lost.fighters + "",
+                deployed.fighters + "",
+                U.format(100f * lost.fighters / deployed.fighters) + "%"
+              }
       );
     }
 
@@ -409,7 +465,7 @@ public class BattleRecordIntel extends BaseFleetHistoryIntelPlugin {
         TooltipMakerAPI t = officerList.beginImageWithText(officer.getSpriteId(), IMG_SIZE);
         t.addPara(officer.getName(), 0);
         if(first) {
-          officerList.addImageWithText(U.LINE_SPACING);
+          officerList.addImageWithText((float)U.LINE_SPACING);
           first = false;
         } else {
           officerList.addImageWithText(ICON_SPACING);
@@ -479,10 +535,43 @@ public class BattleRecordIntel extends BaseFleetHistoryIntelPlugin {
   private TooltipMakerAPI createStrengthSection(CustomPanelAPI container, float width, BattleRecordSideInfo side) {
     
     int SHIPS_PER_ROW = (int) ((width / 2 * 0.9f) / (IMG_SIZE + ICON_SPACING));
-    float calculatedHeight = (float) Math.ceil(side.shipCounts.size() / SHIPS_PER_ROW) * (IMG_SIZE + ICON_SPACING);
+    float calculatedHeight = 
+              (float) (
+                Math.ceil(side.ships.size() / SHIPS_PER_ROW) 
+                + Math.ceil(side.shipCounts.size() / SHIPS_PER_ROW) 
+                + (side.fighters == null ? 0 : Math.ceil(side.fighters.getCount().size() * 1.0f / SHIPS_PER_ROW)) 
+              )
+              * (IMG_SIZE + ICON_SPACING);
     TooltipMakerAPI outerContainer = container.createUIElement(width / 2f, calculatedHeight, false);
     CustomPanelAPI shipList = container.createCustomPanel(width / 2f, calculatedHeight, null);
     int index = 0;
+    
+    // sort ship list by fleet point score
+    Collections.sort(side.ships, (BattleRecordShipInfo brsi1, BattleRecordShipInfo brsi2) -> {
+        BattleRecord br = this.getBattleRecord();
+        int fp1 = 0, fp2 = 0;
+        ShipLog sl1 = U.getShipLogFor(brsi1.getId());
+        if(sl1 != null) {
+            for(ShipLogEntry e : sl1.events) {
+                if(e.getTimestamp() == br.getTimestamp() && ShipLogEntry.EventType.COMBAT.equals(e.type)) {
+                    ShipBattleRecord sbr = (ShipBattleRecord)e.event;
+                    fp1 = sbr.getFleetPoints();
+                    break;
+                }
+            }
+        }
+        ShipLog sl2 = U.getShipLogFor(brsi2.getId());
+        if(sl2 != null) {
+            for(ShipLogEntry e : sl2.events) {
+                if(e.getTimestamp() == br.getTimestamp() && ShipLogEntry.EventType.COMBAT.equals(e.type)) {
+                    ShipBattleRecord sbr = (ShipBattleRecord)e.event;
+                    fp2 = sbr.getFleetPoints();
+                    break;
+                }
+            }
+        }
+        return fp2 - fp1;
+    });
     for (BattleRecordShipInfo s : side.ships) {
       float x = (index % SHIPS_PER_ROW) * (IMG_SIZE + ICON_SPACING);
       float y = 10 + (index / SHIPS_PER_ROW) * (IMG_SIZE + ICON_SPACING);
@@ -490,7 +579,8 @@ public class BattleRecordIntel extends BaseFleetHistoryIntelPlugin {
       shipList.addUIElement(shipImg).inTL(x, y);
       index++;
     }
-    // after player ships section, start allied ships section on new row
+    
+    // start allied ships section on new row
     while(index % SHIPS_PER_ROW != 0) {
       index++;
     }
@@ -500,6 +590,20 @@ public class BattleRecordIntel extends BaseFleetHistoryIntelPlugin {
       TooltipMakerAPI shipImg = createShipCountIcon(shipList, c);
       shipList.addUIElement(shipImg).inTL(x, y);
       index++;
+    }
+    // start fighters section on new row
+    while(index % SHIPS_PER_ROW != 0) {
+      index++;
+    }
+    
+    if(side.fighters != null && side.fighters.getCount() != null) {
+      for(Entry<String, Integer> e : side.fighters.getSortedCount()) {
+        float x = (index % SHIPS_PER_ROW) * (IMG_SIZE + ICON_SPACING);
+        float y = 10 + (index / SHIPS_PER_ROW) * (IMG_SIZE + ICON_SPACING);
+        TooltipMakerAPI shipImg = createShipCountIcon(shipList, e);
+        shipList.addUIElement(shipImg).inTL(x, y);
+        index++;
+      }
     }
 
     outerContainer.addComponent(shipList);
@@ -547,9 +651,30 @@ public class BattleRecordIntel extends BaseFleetHistoryIntelPlugin {
 
   }
 
-  private TooltipMakerAPI createShipCountIcon(CustomPanelAPI container, BattleRecordShipCount c) {
+  private TooltipMakerAPI createShipCountIcon(CustomPanelAPI container, Object o) {
+    
+    ShipHullSpecAPI hull;
+    FighterWingSpecAPI t = null;
+    int lost;
+    int total;
+    
+    if(o instanceof BattleRecordShipCount) {
+      BattleRecordShipCount brsc = (BattleRecordShipCount) o;
+      hull = brsc.getHullSpec();
+      lost = brsc.getLost();
+      total = brsc.getTotal();
+    } else if(o instanceof Entry) {
+      // should actually check if o instanceof Entry<String, BattleRecordFighterCountEntry>
+      // but not supported yet in starsector's java version
+      Entry<String, Integer> e = (Entry<String, Integer>) o;
+      t = Global.getSettings().getFighterWingSpec(e.getKey());
+      hull = t.getVariant().getHullSpec();
+      lost = e.getValue();
+      total = -1;
+    } else {
+      throw new IllegalArgumentException("Invalid object passed to createShipCountIcon(): " + o.getClass().getName());
+    }
 
-    ShipHullSpecAPI hull = c.getHullSpec();
     SpriteAPI sprite = Global.getSettings().getSprite(hull.getSpriteName());
     float scaledWidth = sprite.getWidth();
     float scaledHeight = sprite.getHeight();
@@ -570,19 +695,31 @@ public class BattleRecordIntel extends BaseFleetHistoryIntelPlugin {
     TooltipMakerAPI tooltipHolder = innerContainer.createUIElement(IMG_SIZE, IMG_SIZE, false);
     CustomPanelAPI innerTooltipHolder = innerContainer.createCustomPanel(IMG_SIZE, IMG_SIZE, null);
     tooltipHolder.addCustom(innerTooltipHolder, 0);
-    tooltipHolder.addTooltipToPrevious(new ShipCountTooltip(c), TooltipMakerAPI.TooltipLocation.BELOW);
+    if(o instanceof BattleRecordShipCount) {
+      tooltipHolder.addTooltipToPrevious(new ShipCountTooltip( (BattleRecordShipCount) o ), TooltipMakerAPI.TooltipLocation.BELOW);
+    } else if(o instanceof Entry) {
+      Entry<String, Integer> e = (Entry<String, Integer>) o;
+      FighterWingSpecAPI spec = Global.getSettings().getFighterWingSpec(e.getKey());
+      tooltipHolder.addTooltipToPrevious(new FighterCountTooltip(spec, hull, lost), TooltipMakerAPI.TooltipLocation.BELOW);
+    }
     innerContainer.addUIElement(tooltipHolder).inTL(0, 0);
 
     TooltipMakerAPI shipImg = innerContainer.createUIElement(scaledWidth, scaledHeight, false);
     shipImg.addImage(hull.getSpriteName(), scaledWidth, scaledHeight, 0);
     innerContainer.addUIElement(shipImg).inMid();
 
-    int lost = c.getLost();
-    int total = c.getTotal();
-
-    if (!U.isStation(c.getHullSpec())) {
+    if (lost == total) {
+      TooltipMakerAPI explo = innerContainer.createUIElement(IMG_SIZE * EXPLO_SCALE_FACTOR, IMG_SIZE * EXPLO_SCALE_FACTOR, false);
+      explo.addImage(Global.getSettings().getSpriteName("fh", "explosion"), IMG_SIZE * EXPLO_SCALE_FACTOR, IMG_SIZE * EXPLO_SCALE_FACTOR, 0);
+      innerContainer.addUIElement(explo).inMid();
+    }
+    
+    if (!U.isStation(hull)) {
       TooltipMakerAPI caption = innerContainer.createUIElement(IMG_SIZE, IMG_SIZE, false);
-      if (total == lost) {
+      if(total == -1) {
+        // fighters - only losses are logged
+        caption.addPara(lost + "", Misc.getNegativeHighlightColor(), 0);
+      } else if (total == lost) {
         caption.addPara(total + "", Misc.getNegativeHighlightColor(), 0);
       } else if (lost == 0) {
         caption.addPara(total + "", Misc.getHighlightColor(), 0);
@@ -596,12 +733,6 @@ public class BattleRecordIntel extends BaseFleetHistoryIntelPlugin {
         );
       }
       innerContainer.addUIElement(caption).inBL(0, 0);
-    }
-
-    if (lost == total) {
-      TooltipMakerAPI explo = innerContainer.createUIElement(IMG_SIZE * EXPLO_SCALE_FACTOR, IMG_SIZE * EXPLO_SCALE_FACTOR, false);
-      explo.addImage(Global.getSettings().getSpriteName("fh", "explosion"), IMG_SIZE * EXPLO_SCALE_FACTOR, IMG_SIZE * EXPLO_SCALE_FACTOR, 0);
-      innerContainer.addUIElement(explo).inMid();
     }
 
     outerContainer.addComponent(innerContainer);

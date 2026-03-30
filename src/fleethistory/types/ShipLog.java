@@ -109,6 +109,17 @@ public class ShipLog implements Comparable<ShipLog> {
     return count;
   }
 
+  public long getTotalDeploymentTime() {
+    int count = 0;
+    for (ShipLogEntry e : events) {
+      if (e.type.equals(ShipLogEntry.EventType.COMBAT)) {
+        ShipBattleRecord br = (ShipBattleRecord) e.event;
+        count += br.deployTime;
+      }
+    }
+    return count;
+  }
+
   public ShipBattleRecord getLastBattleRecord() {
     for (int i = events.size() - 1; i >= 0; i--) {
       ShipLogEntry e = events.get(i);

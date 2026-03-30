@@ -20,6 +20,7 @@ import fleethistory.shipevents.ShipBattleRecord;
 import fleethistory.types.ShipInfo;
 import fleethistory.types.ShipLog;
 import fleethistory.U;
+import fleethistory.types.BattleRecordFighterCount;
 import fleethistory.types.ShipBattleResult;
 import fleethistory.types.ShipLogEntry;
 
@@ -36,13 +37,13 @@ public class BattleListener extends BaseCampaignEventListener {
   public void reportPlayerEngagement(EngagementResultAPI result) {
     HashMap<String, Float> enemyShipMaxHps = (HashMap<String, Float>) U.getPersistentData().get(U.CURR_BATTLE_ENEMY_SHIP_MAX_HITPOINTS);
     if (enemyShipMaxHps == null || enemyShipMaxHps.isEmpty() || !U.getPersistentData().containsKey(U.MANUAL_BATTLE_INDICATOR)) {
-      log.info("autoresolved - will not create battle records");
+//      log.info("autoresolved - will not create battle records");
       return;
     }
     if(result.getLastCombatDamageData() == null) {
-      log.info("no combat damage data - will not create battle records");
+//      log.info("no combat damage data - will not create battle records");
       return;
-    };
+    }
     logCombatResults(result);
     U.getPersistentData().remove(U.MANUAL_BATTLE_INDICATOR);
   }
@@ -80,7 +81,7 @@ public class BattleListener extends BaseCampaignEventListener {
 
       // unique key for battle - should stay consistent between engagements in a battle
       battleRecordKey = U.getBattleRecordKey();
-      log.info("Storing current battle record key: " + battleRecordKey);
+//      log.info("Storing current battle record key: " + battleRecordKey);
       U.getPersistentData().put(U.CURR_BATTLE_RECORD_KEY, battleRecordKey);
 
       String enemyFactionId = enemyFleet.getFleet().getFaction().getId();
@@ -121,15 +122,16 @@ public class BattleListener extends BaseCampaignEventListener {
 
     U.addBattleRecord(battleRecordKey, br);
     
-    long duration = System.currentTimeMillis() - (Long) U.getPersistentData().get(U.ENGAGEMENT_START_TIMESTAMP);
+    long duration = (int)((float)U.getPersistentData().get(U.ENGAGEMENT_DURATION));
     br.addDuration(duration);
-    log.info("Battle duration was " + duration + " ms");
+//    log.info("Battle duration was " + duration + " ms");
+    
+    br.addEngagement();
     
     br.setPlayerFleetInfo(result.getBattle().getPlayerSide());
     br.setEnemyFleetInfo(result.getBattle().getNonPlayerSide());
     br.setPlayerFleetStrength(playerFleet);
     br.setEnemyFleetStrength(enemyFleet);
-    
 
     // record outcome for each ship deployed
     for (FleetMemberAPI ship : playerFleet.getDeployed()) {
@@ -150,11 +152,20 @@ public class BattleListener extends BaseCampaignEventListener {
   private void putShipBattleRecord(BattleRecord br, FleetMemberAPI ship, String result) {
 
     HashMap<FleetMemberAPI, ShipBattleRecord> shipBattleRecords = (HashMap<FleetMemberAPI, ShipBattleRecord>) U.getPersistentData().get(U.CURR_BATTLE_SHIP_BATTLE_RECORDS);
+    HashMap<FleetMemberAPI, Float> shipTimes = (HashMap<FleetMemberAPI, Float>) U.getPersistentData().get(U.CURR_BATTLE_SHIP_TIMES);
+    
+    float deployTime = 0f;
+    if(shipTimes.containsKey(ship)) {
+      deployTime = shipTimes.get(ship);
+//      log.info("Ship time for " + ship.getShipName() + " is " + deployTime);
+    }
 
     if (shipBattleRecords.containsKey(ship)) {
       // if ship was already deployed in this battle, just update outcome and health values
       ShipBattleRecord existingRecord = (ShipBattleRecord) shipBattleRecords.get(ship);
       existingRecord.result = result;
+      existingRecord.deployTime += deployTime;
+//      log.info("Total ship time for " + ship.getShipName() + " is " + existingRecord.deployTime);
       if (result.equals(ShipBattleResult.DEPLOYED) || result.equals(ShipBattleResult.RETREATED)) {
         // 2022-04-29 try to detect what's breaking getRepairednessFraction
         try {
@@ -165,6 +176,7 @@ public class BattleListener extends BaseCampaignEventListener {
       }
     } else {
       ShipBattleRecord sbr = new ShipBattleRecord(br.id, result);
+      sbr.deployTime = (long)deployTime;
       if (result.equals(ShipBattleResult.DEPLOYED) || result.equals(ShipBattleResult.RETREATED)) {
         // 2022-04-29 try to detect what's breaking getRepairednessFraction
         try {
@@ -181,10 +193,6 @@ public class BattleListener extends BaseCampaignEventListener {
 
     HashMap<String, Float> enemyShipMaxHps = (HashMap<String, Float>) U.getPersistentData().get(U.CURR_BATTLE_ENEMY_SHIP_MAX_HITPOINTS);
     HashMap<FleetMemberAPI, FleetMemberAPI> childParentShips = (HashMap<FleetMemberAPI, FleetMemberAPI>) U.getPersistentData().get(U.CURR_BATTLE_CHILD_PARENT_SHIPS);
-//    log.info("enemy ship max hps:");
-//    log.info(enemyShipMaxHps.toString());
-//    log.info("child parent ships:");
-//    log.info(childParentShips.toString());
 
     EngagementResultForFleetAPI playerFleet, enemyFleet;
     if (result.didPlayerWin()) {
@@ -220,7 +228,7 @@ public class BattleListener extends BaseCampaignEventListener {
         //log.info("Credited ship is " + creditedShip.getShipName() + " " + creditedShip.getHullSpec().getNameWithDesignationWithDashClass());
 
         if (!damageDealtByShip.containsKey(creditedShip)) {
-          damageDealtByShip.put(creditedShip, new HashMap<FleetMemberAPI, Float>());
+          damageDealtByShip.put(creditedShip, new HashMap<>());
         }
         HashMap<FleetMemberAPI, Float> damageDealtToEnemyShips = damageDealtByShip.get(creditedShip);
 
@@ -341,13 +349,20 @@ public class BattleListener extends BaseCampaignEventListener {
     }
 
     String lastBattleKey = (String) U.getPersistentData().get(U.CURR_BATTLE_RECORD_KEY);
-    log.info("Last battle record key is: " + lastBattleKey);
+//    log.info("Last battle record key is: " + lastBattleKey);
+    
     BattleRecord finishedBattle = U.getBattleRecords().get(lastBattleKey);
     if (finishedBattle != null) {
-      log.info("Finalizing stats for " + lastBattleKey);
+//      log.info("Finalizing stats for " + lastBattleKey);
       finishedBattle.checkPersonBounty();
       finishedBattle.finalizeStats();
+          
+      BattleRecordFighterCount[] fighterCounts = (BattleRecordFighterCount[]) U.getPersistentData().get(U.CURR_BATTLE_FIGHTER_COUNTS);
+      finishedBattle.playerSide.fighters = fighterCounts[U.PLAYER_SIDE];
+      finishedBattle.enemySide.fighters = fighterCounts[U.ENEMY_SIDE];
+
       U.updateBattleRecordIntel(lastBattleKey);
+      
     } else {
       log.error("!!!!!!!!!! No battle record found for " + lastBattleKey);
     }

@@ -30,8 +30,11 @@ public class BattleRecord implements JSONConvertible {
   public boolean playerWon = false;
   public List<BattleRecordExtraInfo> extraInfo;
 
-  private transient long battleTime = -1;
+  private transient long battleTime = 0;
   private String duration;
+  
+  // number of separate engagements
+  private int numEngagements = 0;
 
   public BattleRecord(String id, long timestamp, String location, String enemyFactionId, String enemyFleetName, boolean playerWon) {
     this.id = id;
@@ -56,7 +59,8 @@ public class BattleRecord implements JSONConvertible {
       "inOrAt", "i",
       "playerWon", "w",
       "extraInfo", "x",
-      "duration", "d"
+      "duration", "d",
+      "numEngagements", "c"
     };
     for (int i = 0; i < aliases.length; i += 2) {
       x.aliasAttribute(BattleRecord.class, aliases[i], aliases[i + 1]);
@@ -90,6 +94,10 @@ public class BattleRecord implements JSONConvertible {
       
       if(this.duration != null) {
         o.put("d", this.duration);
+      }
+      
+      if(this.numEngagements > 0) {
+        o.put("c", this.numEngagements);
       }
       
     } catch(JSONException e) {
@@ -295,9 +303,16 @@ public class BattleRecord implements JSONConvertible {
   public final void addDuration(long d) {
     this.battleTime += d;
   }
+  
+  public void addEngagement() {
+    this.numEngagements++;
+  }
+  public int getNumEngagements() {
+    return this.numEngagements;
+  }
 
   public long getDuration() {
-    if (this.battleTime == -1) {
+    if (this.battleTime == 0 && this.duration != null) {
       this.battleTime = U.decodeNum(this.duration);
     }
     return this.battleTime;

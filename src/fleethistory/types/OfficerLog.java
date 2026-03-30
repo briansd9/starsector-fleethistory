@@ -185,9 +185,8 @@ public class OfficerLog implements JSONConvertible {
 
     for (OfficerLogEntry ole : this.getEntries()) {
 
-      if (ole instanceof OfficerBattleEntry) {
+      if (ole instanceof OfficerBattleEntry obe) {
 
-        OfficerBattleEntry obe = (OfficerBattleEntry) ole;
         if (this.officerBattleStats.firstTimestamp == 0) {
           this.officerBattleStats.firstTimestamp = obe.getTimestamp();
         }
@@ -205,7 +204,7 @@ public class OfficerLog implements JSONConvertible {
         this.officerBattleStats.kills += sbr.getKills();
         this.officerBattleStats.assists += sbr.getAssists();
         this.officerBattleStats.fleetPoints += sbr.getFleetPoints();
-
+        this.officerBattleStats.totalTime += sbr.deployTime;
       }
 
     }

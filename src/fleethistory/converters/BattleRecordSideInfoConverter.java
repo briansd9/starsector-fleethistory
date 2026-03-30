@@ -6,6 +6,7 @@ import com.thoughtworks.xstream.converters.UnmarshallingContext;
 import com.thoughtworks.xstream.io.HierarchicalStreamReader;
 import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
 import fleethistory.U;
+import fleethistory.types.BattleRecordFighterCount;
 import fleethistory.types.BattleRecordFleetInfo;
 import fleethistory.types.BattleRecordPersonInfo;
 import fleethistory.types.BattleRecordShipCount;
@@ -67,6 +68,10 @@ public class BattleRecordSideInfoConverter implements Converter {
       s.append(count.getCompressedString());
     }
     writer.addAttribute("c", s.toString());
+    
+    if(i.fighters != null) {
+      writer.addAttribute("d", i.fighters.getCompressedString());
+    }
 
   }
 
@@ -86,7 +91,6 @@ public class BattleRecordSideInfoConverter implements Converter {
     if (reader.getAttribute("f") != null && reader.getAttribute("f").length() > 0) {
       tempStr = reader.getAttribute("f").split(U.DELIMITER);
       for (String str : tempStr) {
-//        Logger.getLogger(this.getClass()).info(String.format("Fleet: [%s]", str));
         i.fleets.add(new BattleRecordFleetInfo(str));
       }
     }
@@ -95,7 +99,6 @@ public class BattleRecordSideInfoConverter implements Converter {
     if (reader.getAttribute("o") != null && reader.getAttribute("o").length() > 0) {
       tempStr = reader.getAttribute("o").split(U.DELIMITER);
       for (String str : tempStr) {
-//        Logger.getLogger(this.getClass()).info(String.format("Officer: [%s]", str));
         i.officers.add(new BattleRecordPersonInfo(str));
       }
     }
@@ -104,7 +107,6 @@ public class BattleRecordSideInfoConverter implements Converter {
     if (reader.getAttribute("s") != null && reader.getAttribute("s").length() > 0) {
       tempStr = reader.getAttribute("s").split(U.DELIMITER);
       for (String str : tempStr) {
-//        Logger.getLogger(this.getClass()).info(String.format("Ship: [%s]", str));
         i.ships.add(new BattleRecordShipInfo(str));
       }
     }
@@ -113,11 +115,14 @@ public class BattleRecordSideInfoConverter implements Converter {
     if (reader.getAttribute("c") != null && reader.getAttribute("c").length() > 0) {
       tempStr = reader.getAttribute("c").split(U.DELIMITER);
       for (String str : tempStr) {
-//        Logger.getLogger(this.getClass()).info(String.format("shipcount: [%s]", str));
         i.shipCounts.add(new BattleRecordShipCount(str, null));
       }
     }
 
+    if (reader.getAttribute("d") != null && reader.getAttribute("d").length() > 0) {      
+      i.fighters = new BattleRecordFighterCount(reader.getAttribute("d"));      
+    }
+    
     return i;
 
   }

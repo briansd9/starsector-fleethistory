@@ -13,6 +13,7 @@ public class BattleRecordSideCount {
   public int cruisers = 0;
   public int capitalShips = 0;
   public int stations = 0;
+  public int fighters = 0;
 
   public static void alias(XStream x) {
     String[] aliases = {
@@ -24,7 +25,8 @@ public class BattleRecordSideCount {
       "destroyers", "d",
       "cruisers", "u",
       "capitalShips", "a",
-      "stations", "t"
+      "stations", "t",
+      "fighters", "i"
     };
     for (int i = 0; i < aliases.length; i += 2) {
       x.aliasAttribute(BattleRecordSideCount.class, aliases[i], aliases[i + 1]);

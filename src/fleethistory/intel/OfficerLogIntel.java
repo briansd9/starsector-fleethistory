@@ -221,22 +221,28 @@ public class OfficerLogIntel extends BaseFleetHistoryIntelPlugin {
       if (obs.battles > 0) {
         if (obs.timesKilled > 0) {
           String battleStats = String.format(
-                  "%s %s",
+                  "%s %s, %s",
                   U.i18n(obs.battles == 1 ? "officer_battle_fought" : "officer_battles_fought"),
-                  U.i18n(obs.timesKilled == 1 ? "officer_rescue" : "officer_rescues")
+                  U.i18n(obs.timesKilled == 1 ? "officer_rescue" : "officer_rescues"),
+                  U.i18n("total_combat_time")
           );
           officerStats.addPara(
                   battleStats,
                   0,
                   Misc.getBrightPlayerColor(),
-                  obs.battles + "", obs.timesKilled + ""
+                  obs.battles + "", obs.timesKilled + "", U.durationString(obs.totalTime)
           );
         } else {
-          officerStats.addPara(
+          String battleStats = String.format(
+                  "%s, %s",
                   U.i18n(obs.battles == 1 ? "officer_battle_fought" : "officer_battles_fought"),
+                  U.i18n("total_combat_time")
+          );
+          officerStats.addPara(
+                  battleStats,
                   0,
                   Misc.getBrightPlayerColor(), 
-                  obs.battles + ""
+                  obs.battles + "", U.durationString(obs.totalTime)
           );
         }
         if (obs.kills > 0 && obs.assists > 0) {
@@ -297,7 +303,7 @@ public class OfficerLogIntel extends BaseFleetHistoryIntelPlugin {
         panel.addUIElement(spacer).belowLeft(officerImg, 15).setXAlignOffset(navButtonsPadding);
 
         TooltipMakerAPI prevBtn = spacer;
-        int numPages = (int) Math.ceil(o.getEntries().size() / MAX_EVENTS_PER_PAGE) - (o.getEntries().size() % MAX_EVENTS_PER_PAGE == 0 ? 1 : 0);
+        int numPages = (int) Math.ceil(o.getEntries().size() * 1.0f / MAX_EVENTS_PER_PAGE) - (o.getEntries().size() % MAX_EVENTS_PER_PAGE == 0 ? 1 : 0);
         int currPage = getPageNumber();
         for (int i = 0; i <= numPages; i++) {
           TooltipMakerAPI pageBtn = panel.createUIElement(25, 25, false);
@@ -462,7 +468,7 @@ public class OfficerLogIntel extends BaseFleetHistoryIntelPlugin {
       int index = 0;
       int elementsPerRow = (int) Math.floor(width / (IMG_SIZE + SPACING));
 
-      float calculatedHeight = (IMG_SIZE + SPACING) * (float) Math.ceil(keys.length / elementsPerRow);
+      float calculatedHeight = (IMG_SIZE + SPACING) * (float) Math.ceil(keys.length * 1.0f / elementsPerRow);
 
       CustomPanelAPI content = panel.createCustomPanel(width, calculatedHeight, null);
 

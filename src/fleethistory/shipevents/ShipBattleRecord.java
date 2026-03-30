@@ -31,6 +31,7 @@ public class ShipBattleRecord implements ShipEvent {
   public float health = 0;
   public String result;
   public boolean recovered = false;
+  public long deployTime = 0;
 
   // temporary storage - need this to handle accumulated damage over multiple-engagement battles
   private transient List<ShipInfo> tempShipsKilledList;
@@ -52,23 +53,24 @@ public class ShipBattleRecord implements ShipEvent {
     x.aliasAttribute(ShipBattleRecord.class, "health", "h");
     x.aliasAttribute(ShipBattleRecord.class, "result", "o");
     x.aliasAttribute(ShipBattleRecord.class, "recovered", "r");
+    x.aliasAttribute(ShipBattleRecord.class, "deployTime", "t");
 
   }
   
   @Override
   public String getCompressedString() {
     return String.format(
-            "%s|%s|%s|%s|%s|%s",
+            "%s|%s|%s|%s|%s|%s|%s",
             this.battleRecordId,
             this.statsCompressedString,
             U.encodeNum(this.totalDamageDealt),
             U.format(this.health),
             this.result,
-            this.recovered ? 1 : 0
+            this.recovered ? 1 : 0,
+            U.encodeNum(this.deployTime)
     );
   }
   
-
   public void addShip(ShipInfo s) {
     this.tempShipsKilledList.add(s);
   }
