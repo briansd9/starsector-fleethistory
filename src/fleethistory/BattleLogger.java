@@ -4,12 +4,12 @@ import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin;
 import com.fs.starfarer.api.combat.CombatEngineAPI;
 import com.fs.starfarer.api.combat.ShipAPI;
-import com.fs.starfarer.api.combat.ShipCommand;
 import com.fs.starfarer.api.fleet.FleetMemberAPI;
 import com.fs.starfarer.api.input.InputEventAPI;
 import java.util.HashMap;
 import java.util.List;
 import fleethistory.shipevents.ShipBattleRecord;
+import fleethistory.types.BattleRecordFighterCount;
 import org.lwjgl.util.vector.Vector2f;
 
 public class BattleLogger extends BaseEveryFrameCombatPlugin {
@@ -26,15 +26,24 @@ public class BattleLogger extends BaseEveryFrameCombatPlugin {
 
     HashMap<String, Object> pd = U.getPersistentData();
     pd.put(U.MANUAL_BATTLE_INDICATOR, 1);
-    
-    pd.put(U.ENGAGEMENT_START_TIMESTAMP, System.currentTimeMillis());
-    log("Starting battle at " + pd.get(U.ENGAGEMENT_START_TIMESTAMP));
-    
+
+    // battle durations always reset on init, no need to keep running total
+    // running total is tracked in BattleListener
+    pd.put(U.ENGAGEMENT_DURATION, 0f);
+    pd.put(U.CURR_BATTLE_SHIP_TIMES, new HashMap<FleetMemberAPI, Float>());
+
     if (!pd.containsKey(U.CURR_BATTLE_TIMESTAMP)) {
+      
       pd.put(U.CURR_BATTLE_TIMESTAMP, Global.getSector().getClock().getTimestamp());
       pd.put(U.CURR_BATTLE_ENEMY_SHIP_MAX_HITPOINTS, new HashMap<String, Float>());
       pd.put(U.CURR_BATTLE_CHILD_PARENT_SHIPS, new HashMap<FleetMemberAPI, FleetMemberAPI>());
       pd.put(U.CURR_BATTLE_SHIP_BATTLE_RECORDS, new HashMap<FleetMemberAPI, ShipBattleRecord>());
+      
+      BattleRecordFighterCount[] arr = new BattleRecordFighterCount[2];
+      arr[0] = new BattleRecordFighterCount();
+      arr[1] = new BattleRecordFighterCount();
+      pd.put(U.CURR_BATTLE_FIGHTER_COUNTS, arr);
+      
     }
   }
 
@@ -46,15 +55,37 @@ public class BattleLogger extends BaseEveryFrameCombatPlugin {
     }
 
     delta += amount;
-    if (delta > 1.5) {
-      
+    
+    if (delta > 1) {
+
       HashMap<String, Object> pd = U.getPersistentData();
+      
+      float currDuration = (float) pd.get(U.ENGAGEMENT_DURATION) + delta;
+      pd.put(U.ENGAGEMENT_DURATION, currDuration);
+
       HashMap<String, Float> enemyShipMaxHps = (HashMap<String, Float>) pd.get(U.CURR_BATTLE_ENEMY_SHIP_MAX_HITPOINTS);
       HashMap<FleetMemberAPI, FleetMemberAPI> childParentShips = (HashMap<FleetMemberAPI, FleetMemberAPI>) pd.get(U.CURR_BATTLE_CHILD_PARENT_SHIPS);
+      HashMap<FleetMemberAPI, Float> shipTimestamps = (HashMap<FleetMemberAPI, Float>) pd.get(U.CURR_BATTLE_SHIP_TIMES);
+      BattleRecordFighterCount[] fighterCounts = (BattleRecordFighterCount[]) pd.get(U.CURR_BATTLE_FIGHTER_COUNTS);
       
       List<ShipAPI> ships = engine.getShips();
       for (ShipAPI ship : ships) {
         
+        if(ship.getWing() != null) {
+          if(ship.getOwner() == 100) {            
+            // owner 100 = hulk; fighter shot down
+            BattleRecordFighterCount f = fighterCounts[ship.getOriginalOwner()];
+            f.logLost(ship.getWing().getSpec().getId());
+            // log(String.format("KILLED: %s (%s) on side %d", ship.getId(), ship.getWing().getSpec().getId(), ship.getOriginalOwner()));
+          } else {
+            // not yet tracked - a newly launched fighter
+            if(!ship.getCustomData().containsKey("TRACKED")) {
+              ship.setCustomData("TRACKED", true);
+            }
+          }
+        }
+        
+            
         FleetMemberAPI fm = ship.getFleetMember();
         if (fm == null) {
           continue;
@@ -62,60 +93,72 @@ public class BattleLogger extends BaseEveryFrameCombatPlugin {
         
         switch(ship.getOwner()) {
           
-          case 0: // player side
+          // player side
+          case 0 -> {
+              
+              // for each newly deployed player ship, get its parent ship if any (fighters, modular ships, etc)
+              ShipAPI parentShip = getParent(ship);
+              
+              // if not a child ship, increment time deployed
+              if (ship == parentShip) {
+                  FleetMemberAPI f = ship.getFleetMember();
+                  if(!shipTimestamps.containsKey(f)) {
+                      shipTimestamps.put(f, delta);
+                  } else {
+                      shipTimestamps.put(f, shipTimestamps.get(f) + delta);
+                  }
+              }
+              
+              // otherwise, store child-parent ship pair, for proper crediting of kills to parent ship
+              if (childParentShips.containsKey(ship.getFleetMember())) {
+                  continue;
+              }
+              childParentShips.put(ship.getFleetMember(), parentShip.getFleetMember());
+          }
             
-            // for each newly deployed player ship, get its parent ship if any (fighters, modular ships, etc) 
-            ShipAPI parentShip = getParent(ship);
-            if (ship == parentShip) {
-              continue;
-            }
-            if (childParentShips.containsKey(ship.getFleetMember())) {
-              continue;
-            }
-            // log(String.format("Adding new child ship pair %s -> %s", ship.getFleetMember().getId(), parentShip.getFleetMember().getId()));
-            childParentShips.put(ship.getFleetMember(), parentShip.getFleetMember());
+          // enemy side
+          case 1 -> {
+              
+              // for each newly deployed enemy ship, store its current hull points
+              if(!enemyShipMaxHps.containsKey(fm.getId())) {
+                  enemyShipMaxHps.put(fm.getId(), ship.getHitpoints());
+              }
+              
+              // TODO remove before release!
+              String s = ship.getFleetMember().getShipName();
+              if(s == null) continue;
+              // accelerate deployment of enemy ships
+              if(ship.getLocation().getY() > 9000 && !ship.getCustomData().containsKey(U.DELIMITER)) {
+                  ship.setCustomData(U.DELIMITER, 1);
+                  ship.getMutableStats().getAcceleration().modifyFlat("BOO!", 500);
+                  ship.getMutableStats().getDeceleration().modifyFlat("BOO!", 500);
+                  ship.getMutableStats().getMaxSpeed().modifyFlat("BOO!", 450);
+              } else if(ship.getLocation().getY() < 9000 && ship.getCustomData().containsKey(U.DELIMITER)) {
+                  log(s + " has entered field, position now " + ship.getLocation().toString());
+                  ship.getMutableStats().getAcceleration().unmodify("BOO!");
+                  ship.getMutableStats().getDeceleration().unmodify("BOO!");
+                  ship.getMutableStats().getMaxSpeed().unmodify("BOO!");
+                  ship.getVelocity().set(0, 0);
+                  ship.removeCustomData(U.DELIMITER);
+              }              
+              // prevent retreat by manually repelling enemy ships from map edge
+              if (ship.isRetreating() && !ship.getCustomData().containsKey("NORETREAT")) {
+                  log(s + " NO RETREAT!");
+                  ship.setCustomData("NORETREAT", 1);
+                  ship.setFixedLocation(new Vector2f(ship.getLocation().getX(), ship.getLocation().getY() - 9000));
+              }
+              // TODO end remove before release section
+              
+          }
             
-            break;
+          case 100 -> {
+              // TODO remove before release!
+              // remove hulks for better performance in huge battles
+              // log("Ship killed at position " + ship.getLocation().toString());
+              engine.removeEntity(ship);
+          }
             
-          case 1: // enemy side
-            
-            // for each newly deployed enemy ship, store its current hull points
-            if(!enemyShipMaxHps.containsKey(fm.getId())) {
-              enemyShipMaxHps.put(fm.getId(), ship.getHitpoints());
-            }
-            
-            // TODO remove before release!
-            String s = ship.getFleetMember().getShipName();
-            if(s == null) continue;
-            if(ship.getLocation().getY() > 9000 && !ship.getCustomData().containsKey(U.DELIMITER)) {
-              ship.setCustomData(U.DELIMITER, 1);
-              ship.getMutableStats().getAcceleration().modifyFlat("BOO!", 500);
-              ship.getMutableStats().getDeceleration().modifyFlat("BOO!", 500);
-              ship.getMutableStats().getMaxSpeed().modifyFlat("BOO!", 450);
-            } else if(ship.getLocation().getY() < 9000 && ship.getCustomData().containsKey(U.DELIMITER)) {
-              log(s + " has entered field, position now " + ship.getLocation().toString());
-              ship.getMutableStats().getAcceleration().unmodify("BOO!");
-              ship.getMutableStats().getDeceleration().unmodify("BOO!");
-              ship.getMutableStats().getMaxSpeed().unmodify("BOO!");
-              ship.getVelocity().set(0, 0);
-              ship.removeCustomData(U.DELIMITER);
-            }            
-            if(ship.isRetreating() && !ship.getCustomData().containsKey("NORETREAT")) {
-              log(s + " NO RETREAT!");
-              ship.setCustomData("NORETREAT", 1);
-              ship.setFixedLocation(new Vector2f(ship.getLocation().getX(), ship.getLocation().getY() - 9000));
-            }
-            // TODO remove before release!
-            
-            break;
-            
-          case 100: // hulks
-            
-            // TODO remove before release!
-            log("Ship killed at position " + ship.getLocation().toString());
-            engine.removeEntity(ship);
-            break;
-            
+          
         }
         
       }
