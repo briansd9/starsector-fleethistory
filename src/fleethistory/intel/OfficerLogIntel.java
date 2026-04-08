@@ -24,9 +24,11 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Objects;
+import org.apache.log4j.Logger;
 
 public class OfficerLogIntel extends BaseFleetHistoryIntelPlugin {
 
+  private static final Logger log = Global.getLogger(OfficerLogIntel.class);
   private static final String OFFICER_LOG_PAGE_NUMBER_PREFIX = "OFFICER_LOG_PAGE_";
   private static final String CURRENT_OFFICER_LOG_ID = "CURRENT_OFFICER_LOG_ID";
   private static final String CURRENT_OFFICER_LOG_PAGE = "CURRENT_OFFICER_LOG_PAGE";
@@ -99,7 +101,7 @@ public class OfficerLogIntel extends BaseFleetHistoryIntelPlugin {
       }
 
     } catch (Exception e) {
-      e.printStackTrace();
+      log.error(e.getMessage(), e);
     }
 
   }
@@ -333,7 +335,7 @@ public class OfficerLogIntel extends BaseFleetHistoryIntelPlugin {
       panel.addUIElement(scroll).belowLeft(officerImg, 50);
 
     } catch (Exception e) {
-      e.printStackTrace();
+      log.error(e.getMessage(), e);
     }
 
   }

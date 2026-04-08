@@ -342,7 +342,7 @@ public class BattleListener extends BaseCampaignEventListener {
           }
           
         } catch(Exception e) {
-          e.printStackTrace();
+          log.error(e.getMessage());
         }
         
       }

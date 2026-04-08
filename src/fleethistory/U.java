@@ -240,7 +240,7 @@ public class U {
     if (!manager.hasIntel(i)) {
       manager.addIntel(i);
     } else {
-      log.info("battleRecordIntel with key " + battleRecordId + " already exists, not adding");
+//      log.info("battleRecordIntel with key " + battleRecordId + " already exists, not adding");
     }
   }
 

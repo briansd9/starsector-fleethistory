@@ -125,9 +125,10 @@ public class BattleLogger extends BaseEveryFrameCombatPlugin {
               }
               
               // TODO remove before release!
+              // accelerate deployment of enemy ships
+              // prevent retreat by manually repelling enemy ships from map edge
               String s = ship.getFleetMember().getShipName();
               if(s == null) continue;
-              // accelerate deployment of enemy ships
               if(ship.getLocation().getY() > 9000 && !ship.getCustomData().containsKey(U.DELIMITER)) {
                   ship.setCustomData(U.DELIMITER, 1);
                   ship.getMutableStats().getAcceleration().modifyFlat("BOO!", 500);
@@ -141,7 +142,6 @@ public class BattleLogger extends BaseEveryFrameCombatPlugin {
                   ship.getVelocity().set(0, 0);
                   ship.removeCustomData(U.DELIMITER);
               }              
-              // prevent retreat by manually repelling enemy ships from map edge
               if (ship.isRetreating() && !ship.getCustomData().containsKey("NORETREAT")) {
                   log(s + " NO RETREAT!");
                   ship.setCustomData("NORETREAT", 1);
@@ -153,7 +153,7 @@ public class BattleLogger extends BaseEveryFrameCombatPlugin {
             
           case 100 -> {
               // TODO remove before release!
-              // remove hulks for better performance in huge battles
+              // delete hulks for better performance in huge battles
               // log("Ship killed at position " + ship.getLocation().toString());
               engine.removeEntity(ship);
           }

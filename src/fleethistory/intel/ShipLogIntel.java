@@ -178,7 +178,7 @@ public class ShipLogIntel extends BaseFleetHistoryIntelPlugin {
       }
 
     } catch (Exception e) {
-      e.printStackTrace();
+      log.error(e.getMessage(), e);
     }
 
   }

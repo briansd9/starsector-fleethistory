@@ -24,7 +24,6 @@ import fleethistory.types.BattleRecordSideCount;
 import fleethistory.types.FactionBattleHistory;
 import fleethistory.types.OfficerLog;
 import java.io.IOException;
-import java.util.ArrayList;
 import org.apache.log4j.Logger;
 import org.json.JSONException;
 
@@ -143,23 +142,17 @@ public class FleetSummaryIntel extends BaseFleetHistoryIntelPlugin {
         container = panel.createUIElement(componentWidth, componentHeight, true);
 
         switch (viewMode) {
-          case U.FLEET_HISTORY_VIEW_SHIPS:
-            content = createShipSummary(panel, componentWidth, componentHeight);
-            break;
-          case U.FLEET_HISTORY_VIEW_BATTLES:
-            content = createBattleSummary(panel, componentWidth, componentHeight);
-            break;
-          case U.FLEET_HISTORY_VIEW_OFFICERS:
-            content = createOfficerSummary(panel, componentWidth, componentHeight);
-            break;
+          case U.FLEET_HISTORY_VIEW_SHIPS -> content = createShipSummary(panel, componentWidth, componentHeight);
+          case U.FLEET_HISTORY_VIEW_BATTLES -> content = createBattleSummary(panel, componentWidth, componentHeight);
+          case U.FLEET_HISTORY_VIEW_OFFICERS -> content = createOfficerSummary(panel, componentWidth, componentHeight);
         }
 
         container.addCustom(content, 0);
         panel.addUIElement(container).belowLeft(spacer, 15).setXAlignOffset(0);
 
       }
-    } catch (Exception e) {
-      e.printStackTrace();
+    } catch (NumberFormatException e) {
+      Global.getLogger(FleetSummaryIntel.class).error(e.getMessage(), e);
     }
 
   }
@@ -198,22 +191,19 @@ public class FleetSummaryIntel extends BaseFleetHistoryIntelPlugin {
     final int REVERSE_MODE = reverseMode;
 
     ShipLog[] shipLogs = U.getShipLogs().values().toArray(new ShipLog[U.getShipLogs().size()]);
-    Arrays.sort(shipLogs, new Comparator<ShipLog>() {
-      @Override
-      public int compare(ShipLog s1, ShipLog s2) {
-        // can't use switch for these - not constant strings, extracted from settings
-        if (SORT_MODE.equals(SHIP_NAME)) {
-          return REVERSE_MODE * s1.info.getShipName().compareTo(s2.info.getShipName());
-        } else if (SORT_MODE.equals(BATTLES)) {
-          return REVERSE_MODE * (s2.getCombats() - s1.getCombats());
-        } else if (SORT_MODE.equals(KILLS)) {
-          return REVERSE_MODE * (s2.getKills() - s1.getKills());
-        } else if (SORT_MODE.equals(ASSISTS)) {
-          return REVERSE_MODE * (s2.getAssists() - s1.getAssists());
-        } else {
-          // default case - fleet point score
-          return REVERSE_MODE * (s2.getFleetPointScore() - s1.getFleetPointScore());
-        }
+    Arrays.sort(shipLogs, (ShipLog s1, ShipLog s2) -> {
+      // can't use switch for these - not constant strings, extracted from settings
+      if (SORT_MODE.equals(SHIP_NAME)) {
+        return REVERSE_MODE * s1.info.getShipName().compareTo(s2.info.getShipName());
+      } else if (SORT_MODE.equals(BATTLES)) {
+        return REVERSE_MODE * (s2.getCombats() - s1.getCombats());
+      } else if (SORT_MODE.equals(KILLS)) {
+        return REVERSE_MODE * (s2.getKills() - s1.getKills());
+      } else if (SORT_MODE.equals(ASSISTS)) {
+        return REVERSE_MODE * (s2.getAssists() - s1.getAssists());
+      } else {
+        // default case - fleet point score
+        return REVERSE_MODE * (s2.getFleetPointScore() - s1.getFleetPointScore());
       }
     });
 

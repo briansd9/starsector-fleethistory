@@ -61,7 +61,7 @@ public class StringCache {
     currKey++;
     String key = U.encodeNum(currKey);
     while(keyToString.containsKey(key)) {
-      Logger.getLogger(StringCache.class).info(String.format("Cache already contains key [%s] for number [%d]", key, currKey));
+//      Logger.getLogger(StringCache.class).info(String.format("Cache already contains key [%s] for number [%d]", key, currKey));
       currKey++;
       key = U.encodeNum(currKey);
     }

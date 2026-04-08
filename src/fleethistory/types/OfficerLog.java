@@ -42,7 +42,7 @@ public class OfficerLog implements JSONConvertible {
     MutableCharacterStatsAPI stats = p.getStats();
 
     this.level = stats.getLevel();
-    log.info("Setting initial level for " + n + " to " + this.level);
+//    log.info("Setting initial level for " + n + " to " + this.level);
 
     this.setSkills(stats);
 
@@ -82,7 +82,7 @@ public class OfficerLog implements JSONConvertible {
       SkillSpecAPI ssapi = slapi.getSkill();
       if (!ssapi.isAptitudeEffect() && ssapi.isCombatOfficerSkill() && slapi.getLevel() > 0) {
         String skillId = (slapi.getLevel() == 2 ? "ELITE_" : "") + ssapi.getId();
-        log.info("Adding skill: " + skillId);
+//        log.info("Adding skill: " + skillId);
         this.skills.add(U.getCache().cacheString(skillId));
       }
     }
