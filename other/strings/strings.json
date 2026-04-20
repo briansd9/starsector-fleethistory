@@ -59,6 +59,7 @@
     "ship_name" : "Ship Name",
     "ship_type" : "Ship Type",
     "battles" : "Battles",
+    "deployment_time" : "Deployment Time",    
     "kills" : "Kills",
     "assists" : "Assists",
     "fleet_points" : "Fleet Points",
@@ -145,6 +146,8 @@
     
     "kill_list" : "Kill List",
     "battle_log" : "Battle Log",
+    "sort_by_date" : "Sort: Date",
+    "sort_by_fp" : "Sort: FP",
     
     # %s = officer/commander name
     "commanding_officer" : "Commanding officer: %s",
