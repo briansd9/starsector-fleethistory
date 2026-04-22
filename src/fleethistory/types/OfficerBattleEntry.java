@@ -5,6 +5,7 @@ import com.fs.starfarer.api.ui.TooltipMakerAPI;
 import com.fs.starfarer.api.util.Misc;
 import fleethistory.U;
 import fleethistory.shipevents.ShipBattleRecord;
+import java.awt.Color;
 
 public class OfficerBattleEntry extends OfficerLogEntry {
 
@@ -87,7 +88,19 @@ public class OfficerBattleEntry extends OfficerLogEntry {
     );
     sbr.renderOutcomeString(shipInfo);
     sbr.renderBattleStats(shipInfo);
-    //panel.addUIElement(shipInfo).rightOfTop(shipImg, 15);
+    
+    TooltipMakerAPI btn = panel.createUIElement(width, height, false);
+    btn.addAreaCheckbox(
+            "",
+            U.BATTLE_LOG_ENTRY + this.battleRecordId,
+            new Color(1f, 1f, 1f, 0.5f),
+            Color.BLACK,
+            Color.BLACK,
+            width * 0.78f,
+            shipInfo.getHeightSoFar() + 8,
+            0
+    );
+    panel.addUIElement(btn).inTL(-6, 2);
     panel.addUIElement(shipInfo).inTL(0, U.LINE_SPACING);
 
     CustomPanelAPI killTable = panel.createCustomPanel(width, 0, null);
