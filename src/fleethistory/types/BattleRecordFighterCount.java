@@ -6,7 +6,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.apache.log4j.Logger;
 
 /**
  *
@@ -43,7 +42,6 @@ public class BattleRecordFighterCount {
 
   public void logLost(String wingID) {
     if(!count.containsKey(wingID)) {
-      Logger.getLogger(this.getClass()).info("Adding new record for " + wingID);
       count.put(wingID, 0);
     }
     count.put(wingID, count.get(wingID) + 1);
@@ -64,10 +62,8 @@ public class BattleRecordFighterCount {
       this.count = new HashMap<>();
       String[] tempStr = this.compressedString.split("\\|");
       for(int x = 0; x < tempStr.length; x+= 2) {
-        // Logger.getLogger(this.getClass()).info("Got from file: " + tempStr[x] + " -> " + tempStr[x+1]);
         String wingID = U.getCache().getCachedString(tempStr[x]);
         int lost = (int) U.decodeNum(tempStr[x+1]);
-        // Logger.getLogger(this.getClass()).info(String.format("Loading %s: %d lost", wingID, lost));
         this.count.put(wingID, lost);
       }
     }
