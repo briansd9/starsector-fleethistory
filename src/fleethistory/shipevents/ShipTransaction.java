@@ -32,6 +32,7 @@ public class ShipTransaction implements ShipEvent {
     x.aliasAttribute(ShipTransaction.class, "price", "p");
   }
 
+  @Override
   public String getCompressedString() {
     return String.format(
             "%s|%s|%s|%s",

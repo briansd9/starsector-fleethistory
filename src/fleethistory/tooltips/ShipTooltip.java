@@ -102,7 +102,7 @@ public class ShipTooltip implements TooltipMakerAPI.TooltipCreator {
       }
       params.add(fp + "");
 
-      tooltip.addPara(str, 0, Misc.getHighlightColor(), params.toArray(new String[params.size()]));
+      tooltip.addPara(str, 0, Misc.getHighlightColor(), params.toArray(String[]::new));
       
     }
     
