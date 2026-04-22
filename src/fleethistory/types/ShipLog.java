@@ -109,7 +109,7 @@ public class ShipLog implements Comparable<ShipLog> {
     return count;
   }
 
-  public long getTotalDeploymentTime() {
+  public int getTotalDeploymentTime() {
     int count = 0;
     for (ShipLogEntry e : events) {
       if (e.type.equals(ShipLogEntry.EventType.COMBAT)) {
