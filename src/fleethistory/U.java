@@ -69,6 +69,9 @@ public class U {
   public static final String KILL_DISPLAY_ICONS = U.i18n("kill_count_icons");
   public static final String KILL_DISPLAY_TABLE = U.i18n("kill_count_table");
   public static final String KILL_DISPLAY_NONE = U.i18n("kill_count_none");
+  public static final String FLEET_HISTORY_EVENT_SORT_ORDER = "FLEET_HISTORY_EVENT_SORT_ORDER";
+  public static final String SORT_BY_DATE = U.i18n("sort_by_date");
+  public static final String SORT_BY_FP = U.i18n("sort_by_fp");
   public static final String FLEET_HISTORY_HIDE_COMMANDERS = "FLEET_HISTORY_HIDE_COMMANDERS";
   public static final String FLEET_HISTORY_HIDE_DEPLOYED = "FLEET_HISTORY_HIDE_DEPLOYED";
   public static final String FLEET_HISTORY_HIDE_INACTIVE = "FLEET_HISTORY_HIDE_INACTIVE";
@@ -77,7 +80,9 @@ public class U {
   
   public static final String BATTLE_LOG = "BATTLE_LOG";
   public static final String KILL_LIST = "KILL_LIST";
+  public static final String BATTLE_LOG_ENTRY = "BATTLE_LOG_ENTRY";
   public static final String LOG_VIEW_MODE_KEY = "LOG_VIEW_MODE_KEY";
+  public static final int MAX_EVENTS_PER_PAGE = 20;
 
   public static final String MANUAL_BATTLE_INDICATOR = "MANUAL_BATTLE_INDICATOR";
   public static final String ENGAGEMENT_DURATION = "ENGAGEMENT_DURATION";
@@ -239,9 +244,9 @@ public class U {
     BattleRecordIntel i = new BattleRecordIntel(battleRecordId);
     if (!manager.hasIntel(i)) {
       manager.addIntel(i);
-    } else {
-//      log.info("battleRecordIntel with key " + battleRecordId + " already exists, not adding");
     }
+    U.getPersistentData().put(U.FLEET_HISTORY_VIEW_MODE, U.FLEET_HISTORY_VIEW_BATTLES);
+    i.sendUpdateIfPlayerHasIntel(null, false);
   }
 
   public static void updateShipLogIntel(FleetMemberAPI ship) {
