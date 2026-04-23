@@ -176,7 +176,7 @@ public class BattleListener extends BaseCampaignEventListener {
       }
     } else {
       ShipBattleRecord sbr = new ShipBattleRecord(br.id, result);
-      sbr.deployTime = (long)deployTime;
+      sbr.deployTime = (int)deployTime;
       if (result.equals(ShipBattleResult.DEPLOYED) || result.equals(ShipBattleResult.RETREATED)) {
         // 2022-04-29 try to detect what's breaking getRepairednessFraction
         try {
