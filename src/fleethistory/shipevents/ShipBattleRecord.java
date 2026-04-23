@@ -10,7 +10,6 @@ import com.fs.starfarer.api.util.Misc;
 import com.thoughtworks.xstream.XStream;
 import java.awt.Color;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import org.apache.log4j.Logger;
@@ -31,7 +30,7 @@ public class ShipBattleRecord implements ShipEvent {
   public float health = 0;
   public String result;
   public boolean recovered = false;
-  public long deployTime = 0;
+  public int deployTime = 0;
 
   // temporary storage - need this to handle accumulated damage over multiple-engagement battles
   private transient List<ShipInfo> tempShipsKilledList;
@@ -187,10 +186,22 @@ public class ShipBattleRecord implements ShipEvent {
   @Override
   public void render(CustomPanelAPI panel, float width, float height) {
     
-
     TooltipMakerAPI t = panel.createUIElement(width, height, false);
     renderOutcomeString(t);
     renderBattleStats(t);
+    
+    TooltipMakerAPI btn = panel.createUIElement(width, height, false);
+    btn.addAreaCheckbox(
+            "",
+            U.BATTLE_LOG_ENTRY + this.battleRecordId,
+            new Color(1f, 1f, 1f, 0.5f),
+            Color.BLACK,
+            Color.BLACK,
+            width * 0.78f,
+            t.getHeightSoFar() + 3,
+            0
+    );
+    panel.addUIElement(btn).inTL(-6, 2);
     panel.addUIElement(t).inTL(0, 0);
     
     if (!this.getStats().isEmpty()) {
@@ -304,20 +315,17 @@ public class ShipBattleRecord implements ShipEvent {
     }    
     
     List<ShipBattleRecordStats> statsList = this.getStats();
-    Collections.sort(statsList, new Comparator<ShipBattleRecordStats>() {
-      @Override
-      public int compare(ShipBattleRecordStats k1, ShipBattleRecordStats k2) {
-        if (k2.getFleetPoints() != k1.getFleetPoints()) {
-          return k2.getFleetPoints() - k1.getFleetPoints();
-        }
-        if (k2.getKills() != k1.getKills()) {
-          return k2.getKills() - k1.getKills();
-        }
-        if (k2.getAssists() != k1.getAssists()) {
-          return k2.getAssists() - k1.getAssists();
-        }
-        return 0;
+    Collections.sort(statsList, (ShipBattleRecordStats k1, ShipBattleRecordStats k2) -> {
+      if (k2.getFleetPoints() != k1.getFleetPoints()) {
+        return k2.getFleetPoints() - k1.getFleetPoints();
       }
+      if (k2.getKills() != k1.getKills()) {
+        return k2.getKills() - k1.getKills();
+      }
+      if (k2.getAssists() != k1.getAssists()) {
+        return k2.getAssists() - k1.getAssists();
+      }
+      return 0;
     });
     
     if(killCountDisplay.equals(U.KILL_DISPLAY_TABLE)) {
