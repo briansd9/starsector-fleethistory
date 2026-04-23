@@ -1,6 +1,8 @@
 package fleethistory.intel;
 
 import com.fs.starfarer.api.Global;
+import com.fs.starfarer.api.campaign.comm.IntelInfoPlugin;
+import com.fs.starfarer.api.characters.PersonAPI;
 import com.fs.starfarer.api.characters.SkillSpecAPI;
 import com.fs.starfarer.api.combat.ShipHullSpecAPI;
 import com.fs.starfarer.api.graphics.SpriteAPI;
@@ -23,6 +25,7 @@ import java.awt.Color;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Objects;
 import org.apache.log4j.Logger;
 
@@ -32,9 +35,9 @@ public class OfficerLogIntel extends BaseFleetHistoryIntelPlugin {
   private static final String OFFICER_LOG_PAGE_NUMBER_PREFIX = "OFFICER_LOG_PAGE_";
   private static final String CURRENT_OFFICER_LOG_ID = "CURRENT_OFFICER_LOG_ID";
   private static final String CURRENT_OFFICER_LOG_PAGE = "CURRENT_OFFICER_LOG_PAGE";
-  private static final int MAX_EVENTS_PER_PAGE = 25;
-
+  
   private final String officerId;
+
   private transient OfficerLog officerLog;
 
   public OfficerLogIntel(String officerId) {
@@ -43,6 +46,10 @@ public class OfficerLogIntel extends BaseFleetHistoryIntelPlugin {
 
   public static void alias(XStream x) {
     x.aliasAttribute(OfficerLogIntel.class, "officerId", "c");
+  }
+
+  public String getOfficerId() {
+    return officerId;
   }
 
   private OfficerLog getLog() {
@@ -192,6 +199,7 @@ public class OfficerLogIntel extends BaseFleetHistoryIntelPlugin {
         }
       } else if (obs.firstTimestamp != 0) {
         String currentShip = o.getCurrentShipAssignment();
+        PersonAPI p = Global.getSector().getImportantPeople().getPerson(o.getId());
         if (currentShip != null) {
           officerStats.addPara(U.i18n("active_service_since"), 0, Misc.getBrightPlayerColor(), U.dateString(obs.firstTimestamp));
           officerStats.addPara(
@@ -269,7 +277,6 @@ public class OfficerLogIntel extends BaseFleetHistoryIntelPlugin {
 
       float navButtonsPadding = 0;
       if (obs.kills > 0 || obs.assists > 0) {
-        HashMap<String, Object> pd = U.getPersistentData();
         TooltipMakerAPI button1 = panel.createUIElement(100, 25, false);
         button1.addAreaCheckbox(
                 U.i18n("kill_list"),
@@ -282,32 +289,32 @@ public class OfficerLogIntel extends BaseFleetHistoryIntelPlugin {
                 0
         );
         panel.addUIElement(button1).belowLeft(officerImg, 15);
-        TooltipMakerAPI button2 = panel.createUIElement(100, 25, false);
+        TooltipMakerAPI button2 = panel.createUIElement(175, 25, false);
         button2.addAreaCheckbox(
-                U.i18n("battle_log"),
+                String.format("%s (%s)", U.i18n("battle_log"), (String)U.getPersistentData().get(U.FLEET_HISTORY_EVENT_SORT_ORDER)), 
                 U.BATTLE_LOG,
                 Misc.getBasePlayerColor(),
                 Misc.getDarkPlayerColor(),
                 U.BATTLE_LOG.equals(this.getViewMode()) ? Misc.getHighlightColor() : Misc.getBrightPlayerColor(),
-                100,
+                175,
                 25,
                 0
         );
         panel.addUIElement(button2).rightOfMid(button1, 5);
-        navButtonsPadding = 205;
+        navButtonsPadding = 275;
       }
 
       // add navigation buttons if needed
-      if (o.getEntries().size() > MAX_EVENTS_PER_PAGE && U.BATTLE_LOG.equals(this.getViewMode())) {
+      if (o.getEntries().size() > U.MAX_EVENTS_PER_PAGE && U.BATTLE_LOG.equals(this.getViewMode())) {
 
         TooltipMakerAPI spacer = panel.createUIElement(5, 25, false);
         spacer.addPara("", 0);
         panel.addUIElement(spacer).belowLeft(officerImg, 15).setXAlignOffset(navButtonsPadding);
 
         TooltipMakerAPI prevBtn = spacer;
-        int numPages = (int) Math.ceil(o.getEntries().size() * 1.0f / MAX_EVENTS_PER_PAGE) - (o.getEntries().size() % MAX_EVENTS_PER_PAGE == 0 ? 1 : 0);
+        int numPages = (int) Math.ceil(o.getEntries().size() * 1.0f / U.MAX_EVENTS_PER_PAGE) - (o.getEntries().size() % U.MAX_EVENTS_PER_PAGE == 0 ? 1 : 0);
         int currPage = getPageNumber();
-        for (int i = 0; i <= numPages; i++) {
+        for (int i = 0; i < numPages; i++) {
           TooltipMakerAPI pageBtn = panel.createUIElement(25, 25, false);
           pageBtn.addAreaCheckbox((i + 1) + "",
                   OFFICER_LOG_PAGE_NUMBER_PREFIX + i,
@@ -337,6 +344,8 @@ public class OfficerLogIntel extends BaseFleetHistoryIntelPlugin {
     } catch (Exception e) {
       log.error(e.getMessage(), e);
     }
+    
+    super.createLargeDescription(panel, width, height);
 
   }
 
@@ -344,21 +353,31 @@ public class OfficerLogIntel extends BaseFleetHistoryIntelPlugin {
 
     CustomPanelAPI container = panel.createCustomPanel(width, 0, null);
 
-    OfficerLog o = this.getLog();
     float calculatedHeight = 0;
     CustomPanelAPI prevEntry = null;
     float dateWidth = 100f;
     float entryPadding = 40f;
-
+    
+    List<OfficerLogEntry> eventList = (
+            ((String)U.getPersistentData().get(U.FLEET_HISTORY_EVENT_SORT_ORDER)).equals(U.SORT_BY_DATE) ? 
+            this.getLog().getEntries() : 
+            this.getLog().getEntries().stream().sorted(
+            (OfficerLogEntry o1, OfficerLogEntry o2) -> {
+              int fp1 = (o1 instanceof OfficerBattleEntry ? ((OfficerBattleEntry)o1).getBattleRecord().getFleetPoints() : 0);
+              int fp2 = (o2 instanceof OfficerBattleEntry ? ((OfficerBattleEntry)o2).getBattleRecord().getFleetPoints() : 0);
+              return fp1 - fp2;
+            }).toList()
+    );
+    
     int pageNumber = getPageNumber();
-    for (int i = 0; i < MAX_EVENTS_PER_PAGE; i++) {
+    for (int i = 0; i < U.MAX_EVENTS_PER_PAGE; i++) {
 
-      int index = (o.getEntries().size() - 1) - (pageNumber * MAX_EVENTS_PER_PAGE) - i;
-      if (index < 0 || index >= o.getEntries().size()) {
+      int index = (eventList.size() - 1) - (pageNumber * U.MAX_EVENTS_PER_PAGE) - i;
+      if (index < 0 || index >= eventList.size()) {
         break;
       }
-
-      OfficerLogEntry e = o.getEntries().get(index);
+      
+      OfficerLogEntry e = eventList.get(index);
       CustomPanelAPI entryContainer = container.createCustomPanel(width, 0, null);
 
       TooltipMakerAPI entryDate = entryContainer.createUIElement(dateWidth, 0, false);
@@ -566,17 +585,46 @@ public class OfficerLogIntel extends BaseFleetHistoryIntelPlugin {
     if (id.startsWith(OFFICER_LOG_PAGE_NUMBER_PREFIX)) {
       setPageNumber(Integer.parseInt(id.replace(OFFICER_LOG_PAGE_NUMBER_PREFIX, "")));
       if (ui != null) {
+        BaseFleetHistoryIntelPlugin.referer = this;
         ui.updateUIForItem(this);
       }
       return;
+    } else if(id.startsWith(U.BATTLE_LOG_ENTRY)) {
+      String battleRecordId = id.replaceFirst(U.BATTLE_LOG_ENTRY, "");
+      List<IntelInfoPlugin> battleLogs = Global.getSector().getIntelManager().getIntel(BattleRecordIntel.class);
+      for(IntelInfoPlugin i : battleLogs) {
+        if(i instanceof BattleRecordIntel bri) {
+          if(battleRecordId.equals(bri.battleRecordId)) {
+            navigateTo(ui, bri);
+            return;
+          }
+        }
+      }
     }
-
+    
     switch (id) {
-      case U.BATTLE_LOG:
-      case U.KILL_LIST:
+      case "<<" -> {
+        navigateTo(ui, BaseFleetHistoryIntelPlugin.browseHistory.pop(), true);
+      }
+      case U.KILL_LIST -> {
         setViewMode(id);
+        BaseFleetHistoryIntelPlugin.referer = this;
         ui.updateUIForItem(this);
-        break;
+      }
+      case U.BATTLE_LOG -> {
+        if(getViewMode().equals(id)) {
+          var pd = U.getPersistentData();
+          String sortMode = (String)pd.get(U.FLEET_HISTORY_EVENT_SORT_ORDER);
+          if(sortMode.equals(U.SORT_BY_DATE)) {
+            pd.put(U.FLEET_HISTORY_EVENT_SORT_ORDER, U.SORT_BY_FP);
+          } else {
+            pd.put(U.FLEET_HISTORY_EVENT_SORT_ORDER, U.SORT_BY_DATE);
+          }
+        }
+        setViewMode(id);
+        BaseFleetHistoryIntelPlugin.referer = this;
+        ui.updateUIForItem(this);
+      }
     }
 
   }
@@ -637,6 +685,10 @@ public class OfficerLogIntel extends BaseFleetHistoryIntelPlugin {
   @Override
   public boolean isHidden() {
 
+    if(this.equals(BaseFleetHistoryIntelPlugin.intelToForceDisplay)) {
+      return false;
+    }
+    
     HashMap<String, Object> pd = U.getPersistentData();
     if (!((String) pd.get(U.FLEET_HISTORY_VIEW_MODE)).equals(U.FLEET_HISTORY_VIEW_OFFICERS)) {
       return true;

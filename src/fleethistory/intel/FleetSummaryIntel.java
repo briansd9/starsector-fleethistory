@@ -2,6 +2,8 @@ package fleethistory.intel;
 
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.FactionAPI;
+import com.fs.starfarer.api.campaign.comm.IntelInfoPlugin;
+import com.fs.starfarer.api.campaign.comm.IntelManagerAPI;
 import com.fs.starfarer.api.ui.ButtonAPI;
 import com.fs.starfarer.api.ui.CustomPanelAPI;
 import com.fs.starfarer.api.ui.IntelUIAPI;
@@ -15,7 +17,6 @@ import fleethistory.U;
 import java.awt.Color;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Comparator;
 import java.util.HashMap;
 import fleethistory.FleetHistoryModPlugin;
 import fleethistory.tooltips.ButtonTooltip;
@@ -24,6 +25,7 @@ import fleethistory.types.BattleRecordSideCount;
 import fleethistory.types.FactionBattleHistory;
 import fleethistory.types.OfficerLog;
 import java.io.IOException;
+import java.util.List;
 import org.apache.log4j.Logger;
 import org.json.JSONException;
 
@@ -33,6 +35,7 @@ public class FleetSummaryIntel extends BaseFleetHistoryIntelPlugin {
   private static final String FLEET_HISTORY_PREFIX = "FH_";
   private static final String SHIP_NAME = U.i18n("ship_name");
   private static final String BATTLES = U.i18n("battles");
+  private static final String DEPLOYMENT_TIME = U.i18n("deployment_time");
   private static final String KILLS = U.i18n("kills");
   private static final String ASSISTS = U.i18n("assists");
   private static final String FLEET_POINTS = U.i18n("total_fleet_points");
@@ -61,11 +64,18 @@ public class FleetSummaryIntel extends BaseFleetHistoryIntelPlugin {
   private static final String OFFICER_HISTORY_PREFIX = "OH_";
   private static final String LEVEL = U.i18n("level");
   private static final String NAME = U.i18n("name");
-//  duplicated from fleet history sort mode
-//  private static final String BATTLES = "Battles";
-//  private static final String KILLS = "Kills";
-//  private static final String ASSISTS = "Assists";
-//  private static final String FLEET_POINTS = "Total Fleet Points";
+
+  private static final String SHIP_HISTORY_ROW_PREFIX = "ROW_SH_";
+  private static final String OFFICER_HISTORY_ROW_PREFIX = "ROW_OH_";
+  
+  private static final String SHIP_PAGE_NUMBER_PREFIX = "SHIP_PAGE_";
+  private static final String OFFICER_PAGE_NUMBER_PREFIX = "OFFICER_PAGE_";
+  private static final String FACTION_PAGE_NUMBER_PREFIX = "FACTION_PAGE_";
+  private static final String CURRENT_SHIP_PAGE = "CURRENT_SHIP_PAGE";
+  private static final String CURRENT_OFFICER_PAGE = "CURRENT_OFFICER_PAGE";
+  private static final String CURRENT_FACTION_PAGE = "CURRENT_FACTION_PAGE";
+  
+  private static final int MAX_ROWS_PER_PAGE = 14;
 
   private static final Color BUTTON_TEXT_COLOR = Misc.getBrightPlayerColor();
   private static final Color BUTTON_BG_COLOR = Misc.getBrightPlayerColor();
@@ -73,9 +83,24 @@ public class FleetSummaryIntel extends BaseFleetHistoryIntelPlugin {
   private static final Color BUTTON_HIGHLIGHT_COLOR = Misc.getHighlightColor();
   private static final float TABLE_HEADER_HEIGHT = 25f;
 
+  public int getPageNumber(String key) {
+    HashMap<String, Object> pd = U.getPersistentData();
+    if (!pd.containsKey(key)) {
+      pd.put(key, 0);
+      return 0;
+    } else {
+      return (int) pd.get(key);
+    }
+  }
+
+  public void setPageNumber(String key, int pageNumber) {
+    HashMap<String, Object> pd = U.getPersistentData();
+    pd.put(key, pageNumber);
+  }
+  
   @Override
   public void createLargeDescription(CustomPanelAPI panel, float width, float height) {
-
+    
     HashMap<String, Object> pd = U.getPersistentData();
 
     try {
@@ -177,7 +202,7 @@ public class FleetSummaryIntel extends BaseFleetHistoryIntelPlugin {
   }
 
   private CustomPanelAPI createShipSummary(CustomPanelAPI panel, float width, float height) {
-
+    
     String sortMode = FLEET_POINTS;
     int reverseMode = 1;
     if (U.getPersistentData().containsKey(FLEET_HISTORY_SORT_MODE)) {
@@ -189,94 +214,168 @@ public class FleetSummaryIntel extends BaseFleetHistoryIntelPlugin {
     }
     final String SORT_MODE = sortMode;
     final int REVERSE_MODE = reverseMode;
-
-    ShipLog[] shipLogs = U.getShipLogs().values().toArray(new ShipLog[U.getShipLogs().size()]);
-    Arrays.sort(shipLogs, (ShipLog s1, ShipLog s2) -> {
-      // can't use switch for these - not constant strings, extracted from settings
-      if (SORT_MODE.equals(SHIP_NAME)) {
-        return REVERSE_MODE * s1.info.getShipName().compareTo(s2.info.getShipName());
-      } else if (SORT_MODE.equals(BATTLES)) {
-        return REVERSE_MODE * (s2.getCombats() - s1.getCombats());
-      } else if (SORT_MODE.equals(KILLS)) {
-        return REVERSE_MODE * (s2.getKills() - s1.getKills());
-      } else if (SORT_MODE.equals(ASSISTS)) {
-        return REVERSE_MODE * (s2.getAssists() - s1.getAssists());
-      } else {
-        // default case - fleet point score
-        return REVERSE_MODE * (s2.getFleetPointScore() - s1.getFleetPointScore());
-      }
+            
+    HashMap<String, Boolean> isHidden = new HashMap<>();
+    Global.getSector().getIntelManager().getIntel(ShipLogIntel.class).stream().forEach( i -> {
+      ShipLogIntel sli = (ShipLogIntel)i;
+      isHidden.put(sli.getFleetMemberId(), sli.isHidden());
     });
+    
+    // check if ship is hidden by settings, then sort by selected mode
+    ShipLog[] shipLogs = U.getShipLogs().values().stream()
+            .filter( s -> !isHidden.get(s.id))
+            .sorted( (s1, s2) -> {
+              // can't use switch for these - not constant strings, extracted from settings
+              if (SORT_MODE.equals(SHIP_NAME)) {
+                return REVERSE_MODE * s2.info.getShipName().compareTo(s1.info.getShipName());
+              } else if (SORT_MODE.equals(BATTLES)) {
+                return REVERSE_MODE * (s1.getCombats() - s2.getCombats());
+              } else if (SORT_MODE.equals(DEPLOYMENT_TIME)) {
+                return REVERSE_MODE * (s1.getTotalDeploymentTime() - s2.getTotalDeploymentTime());
+              } else if (SORT_MODE.equals(KILLS)) {
+                return REVERSE_MODE * (s1.getKills() - s2.getKills());
+              } else if (SORT_MODE.equals(ASSISTS)) {
+                return REVERSE_MODE * (s1.getAssists() - s2.getAssists());
+              } else {
+                // default case - fleet point score
+                return REVERSE_MODE * (s1.getFleetPointScore() - s2.getFleetPointScore());
+              }
+            })
+            .toArray(ShipLog[]::new);
 
     float IMG_SIZE = 30f;
     float ROW_PADDING = 5f;
-    CustomPanelAPI t = panel.createCustomPanel(width, (IMG_SIZE + ROW_PADDING) * (shipLogs.length + 1), null);
+    
+    // height will be set later after determining displayed ships count
+    CustomPanelAPI t = panel.createCustomPanel(width, 0, null);
     CustomPanelAPI previousRow = null;
+    
+    if(shipLogs.length > MAX_ROWS_PER_PAGE) {
+      
+      CustomPanelAPI navButtons = t.createCustomPanel(width, 0, null);
+      int numPages = (shipLogs.length / MAX_ROWS_PER_PAGE) - (shipLogs.length % MAX_ROWS_PER_PAGE == 0 ? 1 : 0);
+      int currPage = getPageNumber(CURRENT_SHIP_PAGE);
+      TooltipMakerAPI prevElem = null;
 
+      for (int i = 0; i <= numPages; i++) {
+        TooltipMakerAPI pageBtn = navButtons.createUIElement(25, 25, false);
+        pageBtn.addAreaCheckbox((i + 1) + "",
+                SHIP_PAGE_NUMBER_PREFIX + i,
+                Misc.getBasePlayerColor(),
+                Misc.getDarkPlayerColor(),
+                (i == currPage ? Misc.getHighlightColor() : Misc.getBrightPlayerColor()),
+                25, 25, 3
+        );
+        if(prevElem == null) {
+          navButtons.addUIElement(pageBtn).inTL(0, 0);
+        } else {
+          navButtons.addUIElement(pageBtn).rightOfMid(prevElem, 2);
+        }
+        prevElem = pageBtn;
+      }
+      t.addComponent(navButtons).inTL(0, 0);
+      previousRow = navButtons;
+      
+    }
+    
     CustomPanelAPI header = t.createCustomPanel(width, TABLE_HEADER_HEIGHT, null);
 
-    TooltipMakerAPI labelHeader = createTableHeader(header, FLEET_HISTORY_PREFIX, SHIP_NAME, SORT_MODE.equals(SHIP_NAME), IMG_SIZE + width * 0.4f);
+    float labelWidth = IMG_SIZE + width * 0.40f;
+    float combatsWidth = width * 0.1f;
+    float deploymentTimeWidth = width * 0.12f;
+    float killsWidth = width * 0.08f;
+    float assistsWidth = width * 0.08f;
+    float fpWidth = width * 0.12f;
+    
+    TooltipMakerAPI labelHeader = createTableHeader(header, FLEET_HISTORY_PREFIX, SHIP_NAME, SORT_MODE.equals(SHIP_NAME), labelWidth);
     header.addUIElement(labelHeader).inTL(0, 0);
 
-    TooltipMakerAPI combatsHeader = createTableHeader(header, FLEET_HISTORY_PREFIX, BATTLES, SORT_MODE.equals(BATTLES), width * 0.1f);
+    TooltipMakerAPI combatsHeader = createTableHeader(header, FLEET_HISTORY_PREFIX, BATTLES, SORT_MODE.equals(BATTLES), combatsWidth);
     header.addUIElement(combatsHeader).rightOfMid(labelHeader, 0);
 
-    TooltipMakerAPI killsHeader = createTableHeader(header, FLEET_HISTORY_PREFIX, KILLS, SORT_MODE.equals(KILLS), width * 0.1f);
-    header.addUIElement(killsHeader).rightOfMid(combatsHeader, 0);
+    TooltipMakerAPI deploymentTimeHeader = createTableHeader(header, FLEET_HISTORY_PREFIX, DEPLOYMENT_TIME, SORT_MODE.equals(DEPLOYMENT_TIME), deploymentTimeWidth);
+    header.addUIElement(deploymentTimeHeader).rightOfMid(combatsHeader, 0);
 
-    TooltipMakerAPI assistsHeader = createTableHeader(header, FLEET_HISTORY_PREFIX, ASSISTS, SORT_MODE.equals(ASSISTS), width * 0.1f);
+    TooltipMakerAPI killsHeader = createTableHeader(header, FLEET_HISTORY_PREFIX, KILLS, SORT_MODE.equals(KILLS), killsWidth);
+    header.addUIElement(killsHeader).rightOfMid(deploymentTimeHeader, 0);
+
+    TooltipMakerAPI assistsHeader = createTableHeader(header, FLEET_HISTORY_PREFIX, ASSISTS, SORT_MODE.equals(ASSISTS), assistsWidth);
     header.addUIElement(assistsHeader).rightOfMid(killsHeader, 0);
 
-    TooltipMakerAPI fpHeader = createTableHeader(header, FLEET_HISTORY_PREFIX, FLEET_POINTS, SORT_MODE.equals(FLEET_POINTS), width * 0.2f);
+    TooltipMakerAPI fpHeader = createTableHeader(header, FLEET_HISTORY_PREFIX, FLEET_POINTS, SORT_MODE.equals(FLEET_POINTS), fpWidth);
     header.addUIElement(fpHeader).rightOfMid(assistsHeader, 0);
 
-    t.addComponent(header).inTL(0, 0);
+    if(previousRow == null) {
+      t.addComponent(header).inTL(0, 0);
+    } else {
+      t.addComponent(header).belowLeft(previousRow, 30);
+    }
     previousRow = header;
+    
+    float rowWidth = IMG_SIZE + 4 + width * 0.9f;
+    float rowHeight = IMG_SIZE + 8;
+    
+    int displayedShips = 0;
 
-    for (ShipLog s : shipLogs) {
-
-      HashMap<String, Object> pd = U.getPersistentData();
-
-      boolean isCurrentFleetMember = s.isCurrentFleetMember();
-      if (pd.containsKey(U.FLEET_HISTORY_HIDE_INACTIVE) && !s.isCurrentFleetMember()) {
-        continue;
+    for (int i = 0; i < MAX_ROWS_PER_PAGE; i++) {
+      
+      int pageNumber = getPageNumber(CURRENT_SHIP_PAGE);
+      int index = (shipLogs.length - 1) - (pageNumber * MAX_ROWS_PER_PAGE) - i;
+      if (index < 0 || index >= shipLogs.length) {
+        break;
       }
+
+      displayedShips++;
+
+      ShipLog s = shipLogs[index];
+      boolean isCurrentFleetMember = s.isCurrentFleetMember();
 
       Color highlightColor = isCurrentFleetMember ? Misc.getBrightPlayerColor() : Misc.getDarkPlayerColor();
       Color defaultColor = isCurrentFleetMember ? Misc.getTextColor() : Misc.getGrayColor();
 
       CustomPanelAPI row = t.createCustomPanel(width, IMG_SIZE, null);
+      
+      TooltipMakerAPI highlighter = row.createUIElement(width, IMG_SIZE, false);
+      highlighter.addAreaCheckbox("", SHIP_HISTORY_ROW_PREFIX + s.id, new Color(255, 255, 255, 128), Color.BLACK, Color.BLACK, rowWidth, rowHeight, 0);
+      row.addUIElement(highlighter).inTL(-2, -4);
 
       TooltipMakerAPI icon = row.createUIElement(IMG_SIZE, IMG_SIZE, false);
       float scaleFactor = U.hullSizeScalar(s.info.getHullSpec().getHullSize());
       icon.addImage(s.info.getHullSpec().getSpriteName(), IMG_SIZE * scaleFactor, IMG_SIZE * scaleFactor, (IMG_SIZE / 2) * (1 - scaleFactor));
       row.addUIElement(icon).inTL((IMG_SIZE / 2) * (1 - scaleFactor), 0);
 
-      TooltipMakerAPI label = row.createUIElement(width * 0.4f, IMG_SIZE, false);
+      TooltipMakerAPI label = row.createUIElement(labelWidth, IMG_SIZE, false);
       label.addPara(s.info.getShipName(), highlightColor, 0);
       label.addPara(s.info.getHullSpec().getNameWithDesignationWithDashClass(), defaultColor, 0);
       row.addUIElement(label).rightOfMid(icon, (IMG_SIZE / 2) * scaleFactor);
 
-      TooltipMakerAPI combats = row.createUIElement(width * 0.1f, IMG_SIZE, false);
+      TooltipMakerAPI combats = row.createUIElement(combatsWidth, IMG_SIZE, false);
       combats.addPara(s.getCombats() + "", defaultColor, 0);
       row.addUIElement(combats).rightOfMid(label, 0);
 
-      TooltipMakerAPI kills = row.createUIElement(width * 0.1f, IMG_SIZE, false);
+      TooltipMakerAPI deploymentTime = row.createUIElement(deploymentTimeWidth, IMG_SIZE, false);
+      deploymentTime.addPara(U.durationString(s.getTotalDeploymentTime()) + "", defaultColor, 0);
+      row.addUIElement(deploymentTime).rightOfMid(combats, -20);
+
+      TooltipMakerAPI kills = row.createUIElement(killsWidth, IMG_SIZE, false);
       kills.addPara(s.getKills() + "", defaultColor, 0);
-      row.addUIElement(kills).rightOfMid(combats, 0);
+      row.addUIElement(kills).rightOfMid(deploymentTime, 10);
 
-      TooltipMakerAPI assists = row.createUIElement(width * 0.1f, IMG_SIZE, false);
+      TooltipMakerAPI assists = row.createUIElement(assistsWidth, IMG_SIZE, false);
       assists.addPara(s.getAssists() + "", defaultColor, 0);
-      row.addUIElement(assists).rightOfMid(kills, 0);
+      row.addUIElement(assists).rightOfMid(kills, -5);
 
-      TooltipMakerAPI fleetPoints = row.createUIElement(width * 0.25f, IMG_SIZE, false);
+      TooltipMakerAPI fleetPoints = row.createUIElement(fpWidth, IMG_SIZE, false);
       fleetPoints.addPara(s.getFleetPointScore() + "", defaultColor, 0);
-      row.addUIElement(fleetPoints).rightOfMid(assists, 0);
+      row.addUIElement(fleetPoints).rightOfMid(assists, 10);
 
       t.addComponent(row).belowMid(previousRow, ROW_PADDING);
       previousRow = row;
 
     }
 
+    t.getPosition().setSize(width, (IMG_SIZE + ROW_PADDING) * (displayedShips + 1));
+    
     return t;
 
   }
@@ -331,72 +430,68 @@ public class FleetSummaryIntel extends BaseFleetHistoryIntelPlugin {
     }
 
     FactionBattleHistory[] factionArr = factionHistory.values().toArray(new FactionBattleHistory[factionHistory.size()]);
-    Arrays.sort(factionArr, new Comparator<FactionBattleHistory>() {
-      @Override
-      public int compare(FactionBattleHistory f1, FactionBattleHistory f2) {
-        int retval = 0;
-        if (SORT_MODE.equals(TOTAL_FP)) {
-          retval = REVERSE_MODE * (f2.totalFleetPoints - f1.totalFleetPoints);
-          if (retval != 0) {
-            return retval;
-          }
-        } else if (SORT_MODE.equals(TOTAL_SHIPS)) {
-          retval = REVERSE_MODE * (f2.totalShips - f1.totalShips);
-          if (retval != 0) {
-            return retval;
-          }
-        } else if (SORT_MODE.equals(TOTAL_BATTLES)) {
-          retval = REVERSE_MODE * (f2.battles - f1.battles);
-          if (retval != 0) {
-            return retval;
-          }
-        } else if (SORT_MODE.equals(STATIONS)) {
-          retval = REVERSE_MODE * (f2.stations - f1.stations);
-          if (retval != 0) {
-            return retval;
-          }
-        } else if (SORT_MODE.equals(CAPITAL_SHIPS)) {
-          retval = REVERSE_MODE * (f2.capitalShips - f1.capitalShips);
-          if (retval != 0) {
-            return retval;
-          }
-        } else if (SORT_MODE.equals(DESTROYERS)) {
-          retval = REVERSE_MODE * (f2.destroyers - f1.destroyers);
-          if (retval != 0) {
-            return retval;
-          }
-        } else if (SORT_MODE.equals(CRUISERS)) {
-          retval = REVERSE_MODE * (f2.cruisers - f1.cruisers);
-          if (retval != 0) {
-            return retval;
-          }
-        } else if (SORT_MODE.equals(FRIGATES)) {
-          retval = REVERSE_MODE * (f2.frigates - f1.frigates);
-          if (retval != 0) {
-            return retval;
-          }
-        } else if (SORT_MODE.equals(WON)) {
-          retval = REVERSE_MODE * (f2.battlesWon - f1.battlesWon);
-          if (retval != 0) {
-            return retval;
-          }
-        } else if (SORT_MODE.equals(LOST)) {
-          retval = REVERSE_MODE * (f2.battlesLost - f1.battlesLost);
-          if (retval != 0) {
-            return retval;
-          }
+    Arrays.sort(factionArr, (FactionBattleHistory f1, FactionBattleHistory f2) -> {
+      int retval; 
+      if (SORT_MODE.equals(TOTAL_FP)) {
+        retval = REVERSE_MODE * (f2.totalFleetPoints - f1.totalFleetPoints);
+        if (retval != 0) {
+          return retval;
         }
-        // default case - by faction id
-        String s1 = Global.getSector().getFaction(f1.factionId).getDisplayNameLong();
-        String s2 = Global.getSector().getFaction(f2.factionId).getDisplayNameLong();
-        return REVERSE_MODE * s1.compareToIgnoreCase(s2);
+      } else if (SORT_MODE.equals(TOTAL_SHIPS)) {
+        retval = REVERSE_MODE * (f2.totalShips - f1.totalShips);
+        if (retval != 0) {
+          return retval;
+        }
+      } else if (SORT_MODE.equals(TOTAL_BATTLES)) {
+        retval = REVERSE_MODE * (f2.battles - f1.battles);
+        if (retval != 0) {
+          return retval;
+        }
+      } else if (SORT_MODE.equals(STATIONS)) {
+        retval = REVERSE_MODE * (f2.stations - f1.stations);
+        if (retval != 0) {
+          return retval;
+        }
+      } else if (SORT_MODE.equals(CAPITAL_SHIPS)) {
+        retval = REVERSE_MODE * (f2.capitalShips - f1.capitalShips);
+        if (retval != 0) {
+          return retval;
+        }
+      } else if (SORT_MODE.equals(DESTROYERS)) {
+        retval = REVERSE_MODE * (f2.destroyers - f1.destroyers);
+        if (retval != 0) {
+          return retval;
+        }
+      } else if (SORT_MODE.equals(CRUISERS)) {
+        retval = REVERSE_MODE * (f2.cruisers - f1.cruisers);
+        if (retval != 0) {
+          return retval;
+        }
+      } else if (SORT_MODE.equals(FRIGATES)) {
+        retval = REVERSE_MODE * (f2.frigates - f1.frigates);
+        if (retval != 0) {
+          return retval;
+        }
+      } else if (SORT_MODE.equals(WON)) {
+        retval = REVERSE_MODE * (f2.battlesWon - f1.battlesWon);
+        if (retval != 0) {
+          return retval;
+        }
+      } else if (SORT_MODE.equals(LOST)) {
+        retval = REVERSE_MODE * (f2.battlesLost - f1.battlesLost);
+        if (retval != 0) {
+          return retval;
+        }
       }
+      // default case - by faction id
+      String s1 = Global.getSector().getFaction(f1.factionId).getDisplayNameLong();
+      String s2 = Global.getSector().getFaction(f2.factionId).getDisplayNameLong();
+      return REVERSE_MODE * s1.compareToIgnoreCase(s2);
     });
 
     float IMG_SIZE = 30f;
     float ROW_PADDING = 8f;
     CustomPanelAPI t = panel.createCustomPanel(width, (IMG_SIZE + ROW_PADDING) * (factionArr.length + 1), null);
-    CustomPanelAPI previousRow = null;
 
     CustomPanelAPI table = t.createCustomPanel(width, TABLE_HEADER_HEIGHT, null);
 
@@ -541,40 +636,80 @@ public class FleetSummaryIntel extends BaseFleetHistoryIntelPlugin {
     final String SORT_MODE = sortMode;
     final int REVERSE_MODE = reverseMode;
 
-    OfficerLog[] officerLogs = U.getOfficerLogs().values().toArray(new OfficerLog[U.getOfficerLogs().size()]);
-    Arrays.sort(officerLogs, new Comparator<OfficerLog>() {
-      @Override
-      public int compare(OfficerLog o1, OfficerLog o2) {
-        OfficerLog.OfficerBattleStats s1 = o1.getStats();
-        OfficerLog.OfficerBattleStats s2 = o2.getStats();
-        if (SORT_MODE.equals(NAME)) {
-          return REVERSE_MODE * o1.getName().compareTo(o2.getName());
-        } else if (SORT_MODE.equals(BATTLES)) {
-          return REVERSE_MODE * (s2.battles - s1.battles);
-        } else if (SORT_MODE.equals(KILLS)) {
-          return REVERSE_MODE * (s2.kills - s1.kills);
-        } else if (SORT_MODE.equals(ASSISTS)) {
-          return REVERSE_MODE * (s2.assists - s1.assists);
-        } else {
-          // default case - sort by fleet points
-          return REVERSE_MODE * (s2.fleetPoints - s1.fleetPoints);
-        }
-      }
+    HashMap<String, Boolean> isHidden = new HashMap<>();
+    Global.getSector().getIntelManager().getIntel(OfficerLogIntel.class).stream().forEach( i -> {
+      OfficerLogIntel oli = (OfficerLogIntel)i;
+      isHidden.put(oli.getOfficerId(), oli.isHidden());
     });
+    
+    // check if hidden by settings, then sort by selected mode
+    OfficerLog[] officerLogs = U.getOfficerLogs().values().stream()
+            .filter( o -> isHidden.containsKey(o.getId()) && !isHidden.get(o.getId()) )
+            .sorted( (o1, o2) -> {
+              OfficerLog.OfficerBattleStats s1 = o1.getStats();
+              OfficerLog.OfficerBattleStats s2 = o2.getStats();
+              if (SORT_MODE.equals(NAME)) {
+                return REVERSE_MODE * o2.getName().compareTo(o1.getName());
+              } else if (SORT_MODE.equals(BATTLES)) {
+                return REVERSE_MODE * (s1.battles - s2.battles);
+              } else if (SORT_MODE.equals(DEPLOYMENT_TIME)) {
+                return REVERSE_MODE * (s1.totalTime - s2.totalTime);
+              } else if (SORT_MODE.equals(KILLS)) {
+                return REVERSE_MODE * (s1.kills - s2.kills);
+              } else if (SORT_MODE.equals(ASSISTS)) {
+                return REVERSE_MODE * (s1.assists - s2.assists);
+              } else {
+                // default case - sort by fleet points
+                return REVERSE_MODE * (s1.fleetPoints - s2.fleetPoints);
+              }
+            })
+            .toArray(OfficerLog[]::new);
 
     float IMG_SIZE = 30f;
     float ROW_PADDING = 5f;
-    CustomPanelAPI t = panel.createCustomPanel(width, (IMG_SIZE + ROW_PADDING) * (officerLogs.length + 1), null);
+    
+    // height will be set later after determining displayed officer count
+    CustomPanelAPI t = panel.createCustomPanel(width, 0, null);
     CustomPanelAPI previousRow = null;
+    
+    if(officerLogs.length > MAX_ROWS_PER_PAGE) {
+      
+      CustomPanelAPI navButtons = t.createCustomPanel(width, 0, null);
+      int numPages = (officerLogs.length / MAX_ROWS_PER_PAGE) - (officerLogs.length % MAX_ROWS_PER_PAGE == 0 ? 1 : 0);
+      int currPage = getPageNumber(CURRENT_OFFICER_PAGE);
+      TooltipMakerAPI prevElem = null;
+
+      for (int i = 0; i <= numPages; i++) {
+        TooltipMakerAPI pageBtn = navButtons.createUIElement(25, 25, false);
+        pageBtn.addAreaCheckbox((i + 1) + "",
+                OFFICER_PAGE_NUMBER_PREFIX + i,
+                Misc.getBasePlayerColor(),
+                Misc.getDarkPlayerColor(),
+                (i == currPage ? Misc.getHighlightColor() : Misc.getBrightPlayerColor()),
+                25, 25, 3
+        );
+        if(prevElem == null) {
+          navButtons.addUIElement(pageBtn).inTL(0, 0);
+        } else {
+          navButtons.addUIElement(pageBtn).rightOfMid(prevElem, 2);
+        }
+        prevElem = pageBtn;
+      }
+      t.addComponent(navButtons).inTL(0, 0);
+      previousRow = navButtons;
+      
+    }
+    
 
     CustomPanelAPI header = t.createCustomPanel(width, TABLE_HEADER_HEIGHT, null);
 
     float labelWidth = IMG_SIZE + width * 0.3f;
-    float levelWidth = width * 0.1f;
+    float levelWidth = width * 0.06f;
     float combatsWidth = width * 0.1f;
+    float deploymentTimeWidth = width * 0.12f;
     float killsWidth = width * 0.1f;
     float assistsWidth = width * 0.1f;
-    float fpWidth = width * 0.2f;
+    float fpWidth = width * 0.12f;
 
     TooltipMakerAPI labelHeader = createTableHeader(header, OFFICER_HISTORY_PREFIX, NAME, SORT_MODE.equals(NAME), labelWidth);
     header.addUIElement(labelHeader).inTL(0, 0);
@@ -585,8 +720,11 @@ public class FleetSummaryIntel extends BaseFleetHistoryIntelPlugin {
     TooltipMakerAPI combatsHeader = createTableHeader(header, OFFICER_HISTORY_PREFIX, BATTLES, SORT_MODE.equals(BATTLES), combatsWidth);
     header.addUIElement(combatsHeader).rightOfMid(levelHeader, 0);
 
+    TooltipMakerAPI deploymentTimeHeader = createTableHeader(header, OFFICER_HISTORY_PREFIX, DEPLOYMENT_TIME, SORT_MODE.equals(DEPLOYMENT_TIME), deploymentTimeWidth);
+    header.addUIElement(deploymentTimeHeader).rightOfMid(combatsHeader, 0);
+
     TooltipMakerAPI killsHeader = createTableHeader(header, OFFICER_HISTORY_PREFIX, KILLS, SORT_MODE.equals(KILLS), killsWidth);
-    header.addUIElement(killsHeader).rightOfMid(combatsHeader, 0);
+    header.addUIElement(killsHeader).rightOfMid(deploymentTimeHeader, 0);
 
     TooltipMakerAPI assistsHeader = createTableHeader(header, OFFICER_HISTORY_PREFIX, ASSISTS, SORT_MODE.equals(ASSISTS), assistsWidth);
     header.addUIElement(assistsHeader).rightOfMid(killsHeader, 0);
@@ -594,21 +732,38 @@ public class FleetSummaryIntel extends BaseFleetHistoryIntelPlugin {
     TooltipMakerAPI fpHeader = createTableHeader(header, OFFICER_HISTORY_PREFIX, FLEET_POINTS, SORT_MODE.equals(FLEET_POINTS), fpWidth);
     header.addUIElement(fpHeader).rightOfMid(assistsHeader, 0);
 
-    t.addComponent(header).inTL(0, 0);
+    if(previousRow == null) {
+      t.addComponent(header).inTL(0, 0);
+    } else {
+      t.addComponent(header).belowLeft(previousRow, 30);
+    }
     previousRow = header;
-
-    for (OfficerLog o : officerLogs) {
-
-      HashMap<String, Object> pd = U.getPersistentData();
-
-      boolean isActive = (o.getCurrentShipAssignment() != null);
-      if (pd.containsKey(U.FLEET_HISTORY_HIDE_INACTIVE) && !isActive) {
-        continue;
+    
+    float rowWidth = IMG_SIZE + 4 + width * 0.9f;
+    float rowHeight = IMG_SIZE + 8;
+    
+    int displayedOfficers = 0;
+    
+    for (int i = 0; i < MAX_ROWS_PER_PAGE; i++) {
+      
+      int pageNumber = getPageNumber(CURRENT_OFFICER_PAGE);
+      int index = (officerLogs.length - 1) - (pageNumber * MAX_ROWS_PER_PAGE) - i;
+      if (index < 0 || index >= officerLogs.length) {
+        break;
       }
+      
+      displayedOfficers++;
+
+      OfficerLog o = officerLogs[index];
+      boolean isActive = (o.getCurrentShipAssignment() != null);
 
       Color defaultColor = isActive ? Misc.getTextColor() : Misc.getGrayColor();
 
       CustomPanelAPI row = t.createCustomPanel(width, IMG_SIZE, null);
+      
+      TooltipMakerAPI highlighter = row.createUIElement(width, IMG_SIZE, false);
+      highlighter.addAreaCheckbox("", OFFICER_HISTORY_ROW_PREFIX + o.getId(), new Color(255, 255, 255, 128), Color.BLACK, Color.BLACK, rowWidth, rowHeight, 0);
+      row.addUIElement(highlighter).inTL(-2, -4);
 
       TooltipMakerAPI icon = row.createUIElement(IMG_SIZE, IMG_SIZE, false);
       icon.addImage(o.getSprite(), IMG_SIZE, IMG_SIZE, 0);
@@ -620,17 +775,21 @@ public class FleetSummaryIntel extends BaseFleetHistoryIntelPlugin {
 
       TooltipMakerAPI level = row.createUIElement(levelWidth, IMG_SIZE, false);
       level.addPara(o.getLevel() + "", defaultColor, 0);
-      row.addUIElement(level).rightOfMid(label, 0);
+      row.addUIElement(level).rightOfMid(label, 16);
 
       OfficerLog.OfficerBattleStats s = o.getStats();
 
       TooltipMakerAPI combats = row.createUIElement(combatsWidth, IMG_SIZE, false);
       combats.addPara(s.battles + "", defaultColor, 0);
-      row.addUIElement(combats).rightOfMid(level, 0);
+      row.addUIElement(combats).rightOfMid(level, 16);
+
+      TooltipMakerAPI deploymentTime = row.createUIElement(deploymentTimeWidth, IMG_SIZE, false);
+      deploymentTime.addPara(U.durationString(s.totalTime), defaultColor, 0);
+      row.addUIElement(deploymentTime).rightOfMid(combats, -20);
 
       TooltipMakerAPI kills = row.createUIElement(killsWidth, IMG_SIZE, false);
       kills.addPara(s.kills + "", defaultColor, 0);
-      row.addUIElement(kills).rightOfMid(combats, 0);
+      row.addUIElement(kills).rightOfMid(deploymentTime, 16);
 
       TooltipMakerAPI assists = row.createUIElement(assistsWidth, IMG_SIZE, false);
       assists.addPara(s.assists + "", defaultColor, 0);
@@ -645,6 +804,8 @@ public class FleetSummaryIntel extends BaseFleetHistoryIntelPlugin {
 
     }
 
+    t.getPosition().setSize(width, (IMG_SIZE + ROW_PADDING) * (displayedOfficers + 1));
+    
     return t;
 
   }
@@ -864,16 +1025,17 @@ public class FleetSummaryIntel extends BaseFleetHistoryIntelPlugin {
     spacer.addButton("", "", Color.decode("#222222"), Color.decode("#222222"), width * 0.94f, 1, 0);
     container.addUIElement(spacer).belowLeft(hideInactiveDesc, 25).setXAlignOffset(-70);
 
-    TooltipMakerAPI exportDataBtn = container.createUIElement(150, 25, false);
-    exportDataBtn.addAreaCheckbox(U.i18n("export_data"), U.FLEET_HISTORY_EXPORT_DATA, Misc.getBasePlayerColor(), Misc.getDarkPlayerColor(), Misc.getBrightPlayerColor(), 150, 25, 0);
-    container.addUIElement(exportDataBtn).belowLeft(spacer, 25).setXAlignOffset(15);
-    TooltipMakerAPI exportDataInfo = container.createUIElement(width * 0.75f, 0, false);
-    exportDataInfo.addPara(U.i18n("export_data_desc"), 0);
-    container.addUIElement(exportDataInfo).rightOfMid(exportDataBtn, 15);
+//    TooltipMakerAPI exportDataBtn = container.createUIElement(150, 25, false);
+//    exportDataBtn.addAreaCheckbox(U.i18n("export_data"), U.FLEET_HISTORY_EXPORT_DATA, Misc.getBasePlayerColor(), Misc.getDarkPlayerColor(), Misc.getBrightPlayerColor(), 150, 25, 0);
+//    container.addUIElement(exportDataBtn).belowLeft(spacer, 25).setXAlignOffset(15);
+//    TooltipMakerAPI exportDataInfo = container.createUIElement(width * 0.75f, 0, false);
+//    exportDataInfo.addPara(U.i18n("export_data_desc"), 0);
+//    container.addUIElement(exportDataInfo).rightOfMid(exportDataBtn, 15);
     
     TooltipMakerAPI clearDataBtn = container.createUIElement(150, 25, false);
     clearDataBtn.addAreaCheckbox(U.i18n("clear_all_data"), U.FLEET_HISTORY_CLEAR_ALL, Misc.getNegativeHighlightColor(), Color.decode("#442200"), Misc.getNegativeHighlightColor(), 150, 25, 0);
-    container.addUIElement(clearDataBtn).belowLeft(exportDataBtn, 25);
+//    container.addUIElement(clearDataBtn).belowLeft(exportDataBtn, 25);
+    container.addUIElement(clearDataBtn).belowLeft(spacer, 25).setXAlignOffset(15);
     TooltipMakerAPI clearDataInfo = container.createUIElement(width * 0.75f, 0, false);
     clearDataInfo.addPara(U.i18n("clear_all_data_desc"), 0);
     container.addUIElement(clearDataInfo).rightOfMid(clearDataBtn, 15);
@@ -931,7 +1093,7 @@ public class FleetSummaryIntel extends BaseFleetHistoryIntelPlugin {
     }
 
     String buttonId = (String) id;
-
+    
     if (buttonId.equals(U.FLEET_HISTORY_CLEAR_ALL)) {
       FleetHistoryModPlugin.clearAllData();
       ui.recreateIntelUI();
@@ -978,35 +1140,69 @@ public class FleetSummaryIntel extends BaseFleetHistoryIntelPlugin {
     } else if (buttonId.startsWith(FLEET_HISTORY_PREFIX)) {
 
       String sortKey = buttonId.replace(FLEET_HISTORY_PREFIX, "");
-      if (U.getPersistentData().containsKey(FLEET_HISTORY_SORT_MODE)) {
-        String currSortKey = (String) U.getPersistentData().get(FLEET_HISTORY_SORT_MODE);
+      if (pd.containsKey(FLEET_HISTORY_SORT_MODE)) {
+        String currSortKey = (String) pd.get(FLEET_HISTORY_SORT_MODE);
         if (currSortKey.equals(sortKey)) {
           sortKey += "_REVERSE";
         }
       }
-      U.getPersistentData().put(FLEET_HISTORY_SORT_MODE, sortKey);
+      pd.put(FLEET_HISTORY_SORT_MODE, sortKey);
 
     } else if (buttonId.startsWith(BATTLE_HISTORY_PREFIX)) {
 
       String sortKey = buttonId.replace(BATTLE_HISTORY_PREFIX, "");
-      if (U.getPersistentData().containsKey(BATTLE_HISTORY_SORT_MODE)) {
-        String currSortKey = (String) U.getPersistentData().get(BATTLE_HISTORY_SORT_MODE);
+      if (pd.containsKey(BATTLE_HISTORY_SORT_MODE)) {
+        String currSortKey = (String) pd.get(BATTLE_HISTORY_SORT_MODE);
         if (currSortKey.equals(sortKey)) {
           sortKey += "_REVERSE";
         }
       }
-      U.getPersistentData().put(BATTLE_HISTORY_SORT_MODE, sortKey);
+      pd.put(BATTLE_HISTORY_SORT_MODE, sortKey);
 
     } else if (buttonId.startsWith(OFFICER_HISTORY_PREFIX)) {
 
       String sortKey = buttonId.replace(OFFICER_HISTORY_PREFIX, "");
-      if (U.getPersistentData().containsKey(OFFICER_HISTORY_SORT_MODE)) {
-        String currSortKey = (String) U.getPersistentData().get(OFFICER_HISTORY_SORT_MODE);
+      if (pd.containsKey(OFFICER_HISTORY_SORT_MODE)) {
+        String currSortKey = (String) pd.get(OFFICER_HISTORY_SORT_MODE);
         if (currSortKey.equals(sortKey)) {
           sortKey += "_REVERSE";
         }
       }
-      U.getPersistentData().put(OFFICER_HISTORY_SORT_MODE, sortKey);
+      pd.put(OFFICER_HISTORY_SORT_MODE, sortKey);
+      
+    } else if (buttonId.startsWith(SHIP_HISTORY_ROW_PREFIX)) {
+      
+      String fleetMemberId = buttonId.replaceFirst(SHIP_HISTORY_ROW_PREFIX, "");
+      List<IntelInfoPlugin> shipLogs = Global.getSector().getIntelManager().getIntel(ShipLogIntel.class);
+      for(IntelInfoPlugin i : shipLogs) {
+        if(i instanceof ShipLogIntel sli) {
+          if(fleetMemberId.equals(sli.getFleetMemberId())) {
+            navigateTo(ui, sli);
+            return;
+          }
+        }
+      }
+
+    } else if (buttonId.startsWith(OFFICER_HISTORY_ROW_PREFIX)) {
+      
+      String officerId = buttonId.replaceFirst(OFFICER_HISTORY_ROW_PREFIX, "");
+      List<IntelInfoPlugin> shipLogs = Global.getSector().getIntelManager().getIntel(OfficerLogIntel.class);
+      for(IntelInfoPlugin i : shipLogs) {
+        if(i instanceof OfficerLogIntel oli) {
+          if(officerId.equals(oli.getOfficerId())) {
+            navigateTo(ui, oli);
+            return;
+          }
+        }
+      }
+      
+    } else if(buttonId.startsWith(SHIP_PAGE_NUMBER_PREFIX)) {
+
+      pd.put(CURRENT_SHIP_PAGE, Integer.valueOf(buttonId.replaceFirst(SHIP_PAGE_NUMBER_PREFIX, "")));
+
+    } else if(buttonId.startsWith(OFFICER_PAGE_NUMBER_PREFIX)) {
+      
+      pd.put(CURRENT_OFFICER_PAGE, Integer.valueOf(buttonId.replaceFirst(OFFICER_PAGE_NUMBER_PREFIX, "")));
 
     } else {
 
@@ -1021,31 +1217,31 @@ public class FleetSummaryIntel extends BaseFleetHistoryIntelPlugin {
         // do nothing - just recreate intel UI so header button doesn't activate
       } else {
         switch (buttonId) {
-          case U.FLEET_HISTORY_VIEW_SHIPS:
-          case U.FLEET_HISTORY_VIEW_BATTLES:
-          case U.FLEET_HISTORY_VIEW_OFFICERS:
+          case U.FLEET_HISTORY_VIEW_SHIPS -> {
+            pd.put(U.FLEET_HISTORY_VIEW_MODE, buttonId);
+            pd.put(CURRENT_SHIP_PAGE, 0);
+            pd.remove(U.FLEET_HISTORY_CONFIG);
+          }
+          case U.FLEET_HISTORY_VIEW_BATTLES, U.FLEET_HISTORY_VIEW_OFFICERS -> {
             pd.put(U.FLEET_HISTORY_VIEW_MODE, buttonId);
             pd.remove(U.FLEET_HISTORY_CONFIG);
-            break;
-          case U.FLEET_HISTORY_CONFIG:
-            pd.put(U.FLEET_HISTORY_CONFIG, 1);
-            break;
-          case U.FLEET_HISTORY_HIDE_COMMANDERS:
-          case U.FLEET_HISTORY_HIDE_DEPLOYED:
+          }
+          case U.FLEET_HISTORY_CONFIG -> pd.put(U.FLEET_HISTORY_CONFIG, 1);
+          case U.FLEET_HISTORY_HIDE_COMMANDERS, U.FLEET_HISTORY_HIDE_DEPLOYED -> {
             if (!pd.containsKey(buttonId)) {
               pd.put(buttonId, true);
             } else {
               pd.remove(buttonId);
             }
-            break;
-          case U.FLEET_HISTORY_HIDE_INACTIVE:
+          }
+          case U.FLEET_HISTORY_HIDE_INACTIVE -> {
             if (!pd.containsKey(buttonId)) {
               pd.put(buttonId, true);
             } else {
               pd.remove(buttonId);
             }
             pd.put(U.FLEET_HISTORY_VIEW_MODE, U.FLEET_HISTORY_VIEW_SHIPS);
-            break;
+          }
         }
       }
 

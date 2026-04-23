@@ -5,6 +5,7 @@ import fleethistory.types.ShipLogEntry;
 import fleethistory.types.ShipLog;
 import fleethistory.shipevents.ShipBattleRecord;
 import com.fs.starfarer.api.Global;
+import com.fs.starfarer.api.campaign.comm.IntelInfoPlugin;
 import com.fs.starfarer.api.combat.ShipHullSpecAPI;
 import com.fs.starfarer.api.fleet.FleetMemberAPI;
 import com.fs.starfarer.api.graphics.SpriteAPI;
@@ -33,11 +34,12 @@ public class ShipLogIntel extends BaseFleetHistoryIntelPlugin {
   private static final Logger log = Global.getLogger(ShipLogIntel.class);
 
   private static final String SHIP_LOG_PAGE_NUMBER_PREFIX = "SHIP_LOG_PAGE_";
+  private static final String OFFICER_PREFIX = "OFFICER_";
   private static final String CURRENT_SHIP_LOG_ID = "CURRENT_SHIP_LOG_ID";
   private static final String CURRENT_SHIP_LOG_PAGE = "CURRENT_SHIP_LOG_PAGE";
-  private static final int MAX_EVENTS_PER_PAGE = 25;
 
   private final String fleetMemberId;
+
 
   public ShipLogIntel(String id) {
     this.fleetMemberId = id;
@@ -45,6 +47,10 @@ public class ShipLogIntel extends BaseFleetHistoryIntelPlugin {
 
   public static void alias(XStream x) {
     x.aliasAttribute(ShipLogIntel.class, "fleetMemberId", "f");
+  }
+
+  public String getFleetMemberId() {
+    return this.fleetMemberId;
   }
 
   @Override
@@ -149,27 +155,27 @@ public class ShipLogIntel extends BaseFleetHistoryIntelPlugin {
                 0
         );
         panel.addUIElement(button1).belowLeft(infoBanner, 10);
-        TooltipMakerAPI button2 = panel.createUIElement(100, 20, false);
-        button2.addAreaCheckbox(U.i18n("battle_log"), U.BATTLE_LOG,
+        TooltipMakerAPI button2 = panel.createUIElement(175, 25, false);
+        button2.addAreaCheckbox(
+                String.format("%s (%s)", U.i18n("battle_log"), (String)pd.get(U.FLEET_HISTORY_EVENT_SORT_ORDER)), 
+                U.BATTLE_LOG,
                 Misc.getBasePlayerColor(),
                 Misc.getDarkPlayerColor(),
                 U.BATTLE_LOG.equals((String) pd.get(U.LOG_VIEW_MODE_KEY)) ? Misc.getHighlightColor() : Misc.getBrightPlayerColor(),
-                100,
+                175,
                 25,
                 0
         );
         panel.addUIElement(button2).rightOfMid(button1, 5);
         topPadding += 10;
-        navButtonsPadding += 203;
+        navButtonsPadding += 275;
       } else {
         topPadding = 15;
       }
 
       // log entries list
       if (viewMode.equals(U.BATTLE_LOG)) {
-        if (shipLog.events.size() > MAX_EVENTS_PER_PAGE) {
-          createNavButtons(infoBanner, panel, navButtonsPadding, width, height);
-        }
+        createNavButtons(infoBanner, panel, navButtonsPadding, width, height);
         TooltipMakerAPI entryList = createEntryList(panel, width * 0.95f, height - infoBannerHeight - topPadding);
         panel.addUIElement(entryList).belowLeft(infoBanner, topPadding);
       } else if (viewMode.equals(U.KILL_LIST)) {
@@ -180,13 +186,15 @@ public class ShipLogIntel extends BaseFleetHistoryIntelPlugin {
     } catch (Exception e) {
       log.error(e.getMessage(), e);
     }
+    
+    super.createLargeDescription(panel, width, height);
 
   }
 
   public TooltipMakerAPI createKillList(CustomPanelAPI panel, float width, float height) {
 
     ShipLog shipLog = U.getShipLogFor(this.fleetMemberId);
-
+    
     final HashMap<String, Integer> kills = new HashMap<>();
     final HashMap<String, Integer> assists = new HashMap<>();
     final HashMap<String, Integer> fleetPoints = new HashMap<>();
@@ -353,7 +361,23 @@ public class ShipLogIntel extends BaseFleetHistoryIntelPlugin {
   public TooltipMakerAPI createInfoBanner(CustomPanelAPI panel, float width, float height) {
 
     ShipLog shipLog = U.getShipLogFor(this.fleetMemberId);
+    String shipFullName = shipLog.info.getShipName() + ", " + shipLog.info.getHullSpec().getNameWithDesignationWithDashClass();
 
+    OfficerLog commandingOfficer = null;
+    String officerString = null;
+    
+    for(OfficerLog ol : U.getOfficerLogs().values()) {
+      if(shipFullName.equals(ol.getCurrentShipAssignment())) {
+        commandingOfficer = ol;
+        if(Global.getSector().getPlayerPerson().getId().equals(ol.getId())) {
+          officerString = U.i18n("flagship_of_commander");
+        } else {
+          officerString = U.i18n("commanding_officer");
+        }
+        break;
+      }
+    }
+    
     TooltipMakerAPI infoBanner = panel.createUIElement(width - 150, height, false);
     CustomPanelAPI content = panel.createCustomPanel(width - 150, height, null);
 
@@ -371,9 +395,31 @@ public class ShipLogIntel extends BaseFleetHistoryIntelPlugin {
     float scaleFactor = U.hullSizeScalar(shipLog.info.getHullSpec().getHullSize());
     scaledWidth *= scaleFactor;
     scaledHeight *= scaleFactor;
-    TooltipMakerAPI image = imageContainer.createUIElement(scaledWidth, scaledHeight, false);
-    image.addImage(shipLog.info.getHullSpec().getSpriteName(), scaledWidth, scaledHeight, 0);
-    imageContainer.addUIElement(image).inMid();
+    
+    TooltipMakerAPI shipImg = imageContainer.createUIElement(scaledWidth, scaledHeight, false);
+    shipImg.addImage(shipLog.info.getHullSpec().getSpriteName(), scaledWidth, scaledHeight, 0);
+    imageContainer.addUIElement(shipImg).inMid();
+    
+    // officer headshot in top left
+    if(commandingOfficer != null) {
+      int captainImgSize = 50;
+      TooltipMakerAPI officerImg = imageContainer.createUIElement(captainImgSize, captainImgSize, false);
+      officerImg.addImage(commandingOfficer.getSprite(), captainImgSize, captainImgSize, 0);
+      TooltipMakerAPI officerImgHighlight = imageContainer.createUIElement(captainImgSize, captainImgSize, false);
+      officerImgHighlight.addAreaCheckbox(
+              "",
+              OFFICER_PREFIX + commandingOfficer.getId(),
+              Misc.getBasePlayerColor(),
+              Misc.getDarkPlayerColor(),
+              Misc.getBrightPlayerColor(),
+              captainImgSize + 2,
+              captainImgSize + 2,
+              0              
+      );
+      imageContainer.addUIElement(officerImgHighlight).inBR(-1, -1);    
+      imageContainer.addUIElement(officerImg).inBR(-2, 0);
+    }
+
     content.addComponent(imageContainer).inTL(0, 0);
 
     TooltipMakerAPI text = content.createUIElement(width - 150, 0, false);
@@ -383,16 +429,8 @@ public class ShipLogIntel extends BaseFleetHistoryIntelPlugin {
     text.setParaFontDefault();
     text.addPara(shipLog.info.getHullSpec().getNameWithDesignationWithDashClass(), 0);
     
-    String shipFullName = shipLog.info.getShipName() + ", " + shipLog.info.getHullSpec().getNameWithDesignationWithDashClass();
-    for(OfficerLog ol : U.getOfficerLogs().values()) {
-      if(shipFullName.equals(ol.getCurrentShipAssignment())) {
-        String officerString = U.i18n("commanding_officer");
-        if(Global.getSector().getPlayerPerson().getId().equals(ol.getId())) {
-          officerString = U.i18n("flagship_of_commander");
-        }
-        text.addPara(officerString, 0, Misc.getBrightPlayerColor(), ol.getName());
-        break;
-      }
+    if(commandingOfficer != null) {
+      text.addPara(officerString, 0, Misc.getBrightPlayerColor(), commandingOfficer.getName());
     }
 
     int combats = shipLog.getCombats();
@@ -492,6 +530,7 @@ public class ShipLogIntel extends BaseFleetHistoryIntelPlugin {
 
   public void createNavButtons(TooltipMakerAPI infoBanner, CustomPanelAPI panel, float xOffset, float width, float height) {
 
+    HashMap<String, Object> pd = U.getPersistentData();
     ShipLog shipLog = U.getShipLogFor(this.fleetMemberId);
 
     TooltipMakerAPI spacer = panel.createUIElement(5, 25, false);
@@ -499,28 +538,45 @@ public class ShipLogIntel extends BaseFleetHistoryIntelPlugin {
     panel.addUIElement(spacer).belowLeft(infoBanner, 9).setXAlignOffset(xOffset);
 
     TooltipMakerAPI prevElem = spacer;
+    
+    if (shipLog.events.size() > U.MAX_EVENTS_PER_PAGE) {
+      
+      int numPages = (shipLog.events.size() / U.MAX_EVENTS_PER_PAGE) - (shipLog.events.size() % U.MAX_EVENTS_PER_PAGE == 0 ? 1 : 0);
+      int currPage = getPageNumber();
 
-    int numPages = (shipLog.events.size() / MAX_EVENTS_PER_PAGE) - (shipLog.events.size() % MAX_EVENTS_PER_PAGE == 0 ? 1 : 0);
-    int currPage = getPageNumber();
-
-    for (int i = 0; i <= numPages; i++) {
-      TooltipMakerAPI pageBtn = panel.createUIElement(25, 25, false);
-      pageBtn.addAreaCheckbox((i + 1) + "",
-              SHIP_LOG_PAGE_NUMBER_PREFIX + i,
-              Misc.getBasePlayerColor(),
-              Misc.getDarkPlayerColor(),
-              (i == currPage ? Misc.getHighlightColor() : Misc.getBrightPlayerColor()),
-              25, 25, 3
-      );
-      panel.addUIElement(pageBtn).rightOfMid(prevElem, 2);
-      prevElem = pageBtn;
+      for (int i = 0; i <= numPages; i++) {
+        TooltipMakerAPI pageBtn = panel.createUIElement(25, 25, false);
+        pageBtn.addAreaCheckbox((i + 1) + "",
+                SHIP_LOG_PAGE_NUMBER_PREFIX + i,
+                Misc.getBasePlayerColor(),
+                Misc.getDarkPlayerColor(),
+                (i == currPage ? Misc.getHighlightColor() : Misc.getBrightPlayerColor()),
+                25, 25, 3
+        );
+        panel.addUIElement(pageBtn).rightOfMid(prevElem, 2);
+        prevElem = pageBtn;
+      }
+      
     }
 
   }
 
   public TooltipMakerAPI createEntryList(CustomPanelAPI panel, float width, float height) {
 
+    HashMap<String, Object> pd = U.getPersistentData();
     ShipLog shipLog = U.getShipLogFor(this.fleetMemberId);
+    
+    List<ShipLogEntry> eventList = (
+            ((String)pd.get(U.FLEET_HISTORY_EVENT_SORT_ORDER)).equals(U.SORT_BY_DATE) ? 
+            shipLog.events : 
+            shipLog.events.stream().sorted(
+            (ShipLogEntry s1, ShipLogEntry s2) -> {
+              int fp1 = (s1.event instanceof ShipBattleRecord ? ((ShipBattleRecord)s1.event).getFleetPoints() : 0);
+              int fp2 = (s2.event instanceof ShipBattleRecord ? ((ShipBattleRecord)s2.event).getFleetPoints() : 0);
+              return fp1 - fp2;
+            }).toList()
+    );
+
 
     TooltipMakerAPI entryList = panel.createUIElement(width, height, true);
     CustomPanelAPI container = panel.createCustomPanel(width, 0, null);
@@ -530,14 +586,14 @@ public class ShipLogIntel extends BaseFleetHistoryIntelPlugin {
     int pageNumber = getPageNumber();
     float dateWidth = 100f;
 
-    for (int i = 0; i < MAX_EVENTS_PER_PAGE; i++) {
+    for (int i = 0; i < U.MAX_EVENTS_PER_PAGE; i++) {
       
-      int index = (shipLog.events.size() - 1) - (pageNumber * MAX_EVENTS_PER_PAGE) - i;
-      if (index < 0 || index >= shipLog.events.size()) {
+      int index = (eventList.size() - 1) - (pageNumber * U.MAX_EVENTS_PER_PAGE) - i;
+      if (index < 0 || index >= eventList.size()) {
         break;
       }
 
-      ShipLogEntry e = shipLog.events.get(index);
+      ShipLogEntry e = eventList.get(index);
       CustomPanelAPI entryContainer = container.createCustomPanel(width, 0, null);
 
       TooltipMakerAPI entryDate = entryContainer.createUIElement(dateWidth, 0, false);
@@ -577,7 +633,7 @@ public class ShipLogIntel extends BaseFleetHistoryIntelPlugin {
 
   @Override
   public void createIntelInfo(TooltipMakerAPI t, ListInfoMode mode) {
-
+    
     ShipLog shipLog = U.getShipLogFor(this.fleetMemberId);
     boolean isCurrentFleetMember = shipLog.isCurrentFleetMember();
 
@@ -640,6 +696,10 @@ public class ShipLogIntel extends BaseFleetHistoryIntelPlugin {
 
   @Override
   public boolean isHidden() {
+    
+    if(this.equals(BaseFleetHistoryIntelPlugin.intelToForceDisplay)) {
+      return false;
+    }
 
     HashMap<String, Object> pd = U.getPersistentData();
     if (!((String) pd.get(U.FLEET_HISTORY_VIEW_MODE)).equals(U.FLEET_HISTORY_VIEW_SHIPS)) {
@@ -671,19 +731,60 @@ public class ShipLogIntel extends BaseFleetHistoryIntelPlugin {
     
     String id = (String) buttonId;
     if (id.startsWith(SHIP_LOG_PAGE_NUMBER_PREFIX)) {
-      setPageNumber(Integer.parseInt(id.replace(SHIP_LOG_PAGE_NUMBER_PREFIX, "")));
-      if (ui != null) {
+      setPageNumber(Integer.parseInt(id.replaceFirst(SHIP_LOG_PAGE_NUMBER_PREFIX, "")));
+      BaseFleetHistoryIntelPlugin.referer = this;
+      ui.updateUIForItem(this);
+      return;
+    } else if(id.startsWith(OFFICER_PREFIX)) {
+      String officerId = id.replaceFirst(OFFICER_PREFIX, "");
+      List<IntelInfoPlugin> officerLogs = Global.getSector().getIntelManager().getIntel(OfficerLogIntel.class);
+      for(IntelInfoPlugin i : officerLogs) {
+        if(i instanceof OfficerLogIntel oli) {
+          if(officerId.equals(oli.getOfficerId())) {
+            navigateTo(ui, oli);
+            return;
+          }
+        }
+      }
+    } else if(id.startsWith(U.BATTLE_LOG_ENTRY)) {
+      String battleRecordId = id.replaceFirst(U.BATTLE_LOG_ENTRY, "");
+      List<IntelInfoPlugin> battleLogs = Global.getSector().getIntelManager().getIntel(BattleRecordIntel.class);
+      for(IntelInfoPlugin i : battleLogs) {
+        if(i instanceof BattleRecordIntel bri) {
+          if(battleRecordId.equals(bri.battleRecordId)) {
+            navigateTo(ui, bri);
+            return;
+          }
+        }
+      }
+    }
+    
+    switch (id) {
+      case "<<" -> {
+        navigateTo(ui, BaseFleetHistoryIntelPlugin.browseHistory.pop(), true);
+      }
+      case "OFFICER" -> {
+        navigateTo(ui, BaseFleetHistoryIntelPlugin.browseHistory.pop(), true);
+      }
+      case U.KILL_LIST -> {
+        setViewMode(id);
+        BaseFleetHistoryIntelPlugin.referer = this;
         ui.updateUIForItem(this);
       }
-      return;
-    }
-
-    switch (id) {
-      case U.BATTLE_LOG:
-      case U.KILL_LIST:
+      case U.BATTLE_LOG -> {
+        if(getViewMode().equals(id)) {
+          var pd = U.getPersistentData();
+          String sortMode = (String)pd.get(U.FLEET_HISTORY_EVENT_SORT_ORDER);
+          if(sortMode.equals(U.SORT_BY_DATE)) {
+            pd.put(U.FLEET_HISTORY_EVENT_SORT_ORDER, U.SORT_BY_FP);
+          } else {
+            pd.put(U.FLEET_HISTORY_EVENT_SORT_ORDER, U.SORT_BY_DATE);
+          }
+        }
         setViewMode(id);
+        BaseFleetHistoryIntelPlugin.referer = this;
         ui.updateUIForItem(this);
-        break;
+      }
     }
   }
 
