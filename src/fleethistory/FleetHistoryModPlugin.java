@@ -97,6 +97,9 @@ public class FleetHistoryModPlugin extends BaseModPlugin {
     if (!pd.containsKey(U.FLEET_HISTORY_KILL_DISPLAY)) {
       pd.put(U.FLEET_HISTORY_KILL_DISPLAY, U.KILL_DISPLAY_ICONS);
     }
+    if (!pd.containsKey(U.FLEET_HISTORY_EVENT_SORT_ORDER)) {
+      pd.put(U.FLEET_HISTORY_EVENT_SORT_ORDER, U.SORT_BY_DATE);
+    }
 
   }
   
