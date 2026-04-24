@@ -909,9 +909,27 @@ public class FleetSummaryIntel extends BaseFleetHistoryIntelPlugin {
     hideDeployedDesc.addPara(U.i18n("hide_deployed"), 5);
     container.addUIElement(hideDeployedDesc).rightOfMid(hideDeployedCheckbox, 5);
 
+    var notifyBattlesCheckbox = container.createUIElement(25, 25, false);
+    btn = notifyBattlesCheckbox.addAreaCheckbox(
+            " ", U.FLEET_HISTORY_NOTIFY_BATTLES,
+            Misc.getBasePlayerColor(),
+            Misc.getDarkPlayerColor(),
+            Misc.getBrightPlayerColor(),
+            15, 15, 5
+    );
+    btn.setChecked(pd.containsKey(U.FLEET_HISTORY_NOTIFY_BATTLES));
+    notifyBattlesCheckbox.addTooltipToPrevious(
+            new ButtonTooltip(U.i18n("notify_battles_desc"), 350),
+            TooltipMakerAPI.TooltipLocation.BELOW
+    );
+    container.addUIElement(notifyBattlesCheckbox).belowLeft(hideDeployedCheckbox, 0);
+    TooltipMakerAPI notifyBattlesDesc = container.createUIElement(width, 25, false);
+    notifyBattlesDesc.addPara(U.i18n("notify_battles"), 5);
+    container.addUIElement(notifyBattlesDesc).rightOfMid(notifyBattlesCheckbox, 5);
+    
     TooltipMakerAPI spacer = container.createUIElement(width, 1, false);
     spacer.addButton("", "", Color.decode("#222222"), Color.decode("#222222"), width * 0.94f, 1, 0);
-    container.addUIElement(spacer).belowLeft(hideDeployedDesc, 20).setXAlignOffset(-65);
+    container.addUIElement(spacer).belowLeft(notifyBattlesDesc, 20).setXAlignOffset(-65);
 
     TooltipMakerAPI shipFiltersHeader = container.createUIElement(450, 25, false);
     shipFiltersHeader.setParaInsigniaVeryLarge();
@@ -1227,7 +1245,7 @@ public class FleetSummaryIntel extends BaseFleetHistoryIntelPlugin {
             pd.remove(U.FLEET_HISTORY_CONFIG);
           }
           case U.FLEET_HISTORY_CONFIG -> pd.put(U.FLEET_HISTORY_CONFIG, 1);
-          case U.FLEET_HISTORY_HIDE_COMMANDERS, U.FLEET_HISTORY_HIDE_DEPLOYED -> {
+          case U.FLEET_HISTORY_HIDE_COMMANDERS, U.FLEET_HISTORY_HIDE_DEPLOYED, U.FLEET_HISTORY_NOTIFY_BATTLES -> {
             if (!pd.containsKey(buttonId)) {
               pd.put(buttonId, true);
             } else {

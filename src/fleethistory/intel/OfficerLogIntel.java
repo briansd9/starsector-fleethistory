@@ -203,7 +203,7 @@ public class OfficerLogIntel extends BaseFleetHistoryIntelPlugin {
         if (currentShip != null) {
           officerStats.addPara(U.i18n("active_service_since"), 0, Misc.getBrightPlayerColor(), U.dateString(obs.firstTimestamp));
           officerStats.addPara(
-                  U.i18n("commanding"),
+                  (o.isAICore() ? U.i18n("installed") : U.i18n("commanding")),
                   0,
                   Misc.getBrightPlayerColor(),
                   currentShip
@@ -212,11 +212,10 @@ public class OfficerLogIntel extends BaseFleetHistoryIntelPlugin {
           officerStats.addPara(U.i18n("active_service_from_to"), 0, Misc.getBrightPlayerColor(), U.dateString(obs.firstTimestamp), U.dateString(obs.lastTimestamp));
           for(int i = o.getEntries().size() - 1; i >= 0; i--) {
             OfficerLogEntry ole = o.getEntries().get(i);
-            if(ole instanceof OfficerBattleEntry) {
-              OfficerBattleEntry obe = (OfficerBattleEntry)ole;
+            if(ole instanceof OfficerBattleEntry obe) {
               ShipInfo si = U.getShipLogFor(obe.getShipId()).info;
               officerStats.addPara(
-                      U.i18n("last_commanded"),
+                      (o.isAICore() ? U.i18n("last_installed") : U.i18n("last_commanded")),
                       0,
                       Misc.getBrightPlayerColor(),
                       si.getShipName() + ", " + si.getHullSpec().getNameWithDesignationWithDashClass()

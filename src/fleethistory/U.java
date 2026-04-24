@@ -74,6 +74,7 @@ public class U {
   public static final String SORT_BY_FP = U.i18n("sort_by_fp");
   public static final String FLEET_HISTORY_HIDE_COMMANDERS = "FLEET_HISTORY_HIDE_COMMANDERS";
   public static final String FLEET_HISTORY_HIDE_DEPLOYED = "FLEET_HISTORY_HIDE_DEPLOYED";
+  public static final String FLEET_HISTORY_NOTIFY_BATTLES = "FLEET_HISTORY_NOTIFY_BATTLES";
   public static final String FLEET_HISTORY_HIDE_INACTIVE = "FLEET_HISTORY_HIDE_INACTIVE";
   public static final String FLEET_HISTORY_CLEAR_ALL = "FLEET_HISTORY_CLEAR_ALL";
   public static final String FLEET_HISTORY_EXPORT_DATA = "FLEET_HISTORY_EXPORT_DATA";
@@ -245,8 +246,10 @@ public class U {
     if (!manager.hasIntel(i)) {
       manager.addIntel(i);
     }
-    U.getPersistentData().put(U.FLEET_HISTORY_VIEW_MODE, U.FLEET_HISTORY_VIEW_BATTLES);
-    i.sendUpdateIfPlayerHasIntel(null, false);
+    if(U.getPersistentData().containsKey(U.FLEET_HISTORY_NOTIFY_BATTLES)) {
+      U.getPersistentData().put(U.FLEET_HISTORY_VIEW_MODE, U.FLEET_HISTORY_VIEW_BATTLES);
+      i.sendUpdateIfPlayerHasIntel(null, false);
+    }
   }
 
   public static void updateShipLogIntel(FleetMemberAPI ship) {

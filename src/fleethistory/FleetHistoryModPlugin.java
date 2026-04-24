@@ -94,6 +94,9 @@ public class FleetHistoryModPlugin extends BaseModPlugin {
     if (!pd.containsKey(U.FLEET_HISTORY_SHIP_FP_SCORE)) {
       pd.put(U.FLEET_HISTORY_SHIP_FP_SCORE, 0);
     }
+    if (!pd.containsKey(U.FLEET_HISTORY_NOTIFY_BATTLES)) {
+      pd.put(U.FLEET_HISTORY_NOTIFY_BATTLES, true);
+    }
     if (!pd.containsKey(U.FLEET_HISTORY_KILL_DISPLAY)) {
       pd.put(U.FLEET_HISTORY_KILL_DISPLAY, U.KILL_DISPLAY_ICONS);
     }

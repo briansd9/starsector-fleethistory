@@ -6,6 +6,7 @@ import com.fs.starfarer.api.characters.MutableCharacterStatsAPI.SkillLevelAPI;
 import com.fs.starfarer.api.characters.PersonAPI;
 import com.fs.starfarer.api.characters.SkillSpecAPI;
 import com.fs.starfarer.api.fleet.FleetMemberAPI;
+import com.fs.starfarer.api.util.Misc;
 import fleethistory.StringCache;
 import fleethistory.U;
 import fleethistory.shipevents.ShipBattleRecord;
@@ -23,13 +24,14 @@ public class OfficerLog implements JSONConvertible {
   private String name;
   private final String sprite;
   private int level;
+  private boolean isAICore = false;
   private List<String> skills;
 
   private transient OfficerBattleStats officerBattleStats;
   private transient List<OfficerLogEntry> entries;
 
   public OfficerLog(PersonAPI p) {
-
+    
     StringCache sc = U.getCache();
     
     this.id = sc.cacheString(p.getId());
@@ -43,6 +45,8 @@ public class OfficerLog implements JSONConvertible {
 
     this.level = stats.getLevel();
 //    log.info("Setting initial level for " + n + " to " + this.level);
+
+    this.isAICore = p.isAICore();
 
     this.setSkills(stats);
 
@@ -82,10 +86,17 @@ public class OfficerLog implements JSONConvertible {
       SkillSpecAPI ssapi = slapi.getSkill();
       if (!ssapi.isAptitudeEffect() && ssapi.isCombatOfficerSkill() && slapi.getLevel() > 0) {
         String skillId = (slapi.getLevel() == 2 ? "ELITE_" : "") + ssapi.getId();
-//        log.info("Adding skill: " + skillId);
         this.skills.add(U.getCache().cacheString(skillId));
       }
     }
+  }
+  
+  public boolean isAICore() {
+    return this.isAICore;
+  }
+  
+  public void setIsAICore(boolean b) {
+    this.isAICore = b;
   }
 
   public List<OfficerLogEntry> getEntries() {
@@ -157,6 +168,12 @@ public class OfficerLog implements JSONConvertible {
       // skill is already compressed, no need to cache string
       sb.append("|").append(skill);
     }
+    // ugly hack - using reserved delimiter character # to indicate AI core status;
+    // isAICore is false by default and will only be set to true if # is found
+    if(this.isAICore) {
+      sb.append("|#");
+    }
+    
     return sb.toString();
   }
 

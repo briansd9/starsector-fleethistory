@@ -27,11 +27,16 @@ public class OfficerLogConverter implements Converter {
   @Override
   public Object unmarshal(HierarchicalStreamReader reader, UnmarshallingContext context) {
 
-    //Logger.getLogger(this.getClass()).info(reader.getAttribute("d"));
     String[] data = reader.getAttribute("d").split("\\|");
     OfficerLog o = new OfficerLog(data[0], data[1], data[2], Integer.parseInt(data[3]));
     for (int i = 4; i < data.length; i++) {
-      o.getSkills().add(data[i]);
+      if(data[i].equals("#")) {
+        // ugly hack - using reserved delimiter character # to indicate AI core status;
+        // isAICore is false by default and will only be set to true if # is found
+        o.setIsAICore(true);
+      } else {
+        o.getSkills().add(data[i]);
+      }
     }
 
     String[] entries = reader.getAttribute("e").split(U.DELIMITER);

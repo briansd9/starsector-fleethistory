@@ -91,6 +91,8 @@
     "days_ago_desc" : "Only display battles within the selected time period (select 0 to show all).",
     "hide_commanders" : "Hide commanders section",
     "hide_deployed" : "Hide deployed forces section",
+    "notify_battles" : "Notify after battles",
+    "notify_battles_desc" : "If checked, popup notifications will be sent immediately after each battle (subject to battle size filter above).",
     
     "ship_officer_settings_header" : "Ship and Officer Settings",
     "battles_fought" : "Battles fought",
@@ -136,10 +138,16 @@
     
     "fleet_commander" : "Fleet commander",
     
-    # %s = full name and class of commanded ship
+    # ship captain strings - %s = full name and class of commanded ship
+    
+    # for the player
     "commanding_flagship" : "Commanding flagship %s",
+    # for human officers
     "commanding" : "Commanding %s",
     "last_commanded" : "Last commanded %s",
+    # for AI cores
+    "installed" : "Installed in %s",
+    "last_installed" : "Last installed in %s",
     
     "active_service_since" : "In active service since %s",
     "active_service_from_to" : "In active service from %s to %s",
