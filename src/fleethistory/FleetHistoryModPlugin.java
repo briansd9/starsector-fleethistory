@@ -46,13 +46,6 @@ public class FleetHistoryModPlugin extends BaseModPlugin {
   private static ShipBoughtOrSoldListener shipBoughtOrSoldListener;
   private static OfficerUpdateListener officerUpdateListener;
   private static ShipRecoveredListener shipRecoveredListener;
-  
-  @Override
-  public void onApplicationLoad() throws Exception {
-      // TODO remove before release!
-      Logger.getRootLogger().setLevel(Level.ERROR);
-      Logger.getLogger("fleethistory").setLevel(Level.INFO);
-  }  
 
   @Override
   public void onGameLoad(boolean newGame) {
