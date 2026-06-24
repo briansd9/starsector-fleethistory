@@ -118,51 +118,18 @@ public class BattleLogger extends BaseEveryFrameCombatPlugin {
             
           // enemy side
           case 1 -> {
-              
               // for each newly deployed enemy ship, store its current hull points
               if(!enemyShipMaxHps.containsKey(fm.getId())) {
                   enemyShipMaxHps.put(fm.getId(), ship.getHitpoints());
               }
-              
-              // TODO remove before release!
-              // accelerate deployment of enemy ships
-              // prevent retreat by manually repelling enemy ships from map edge
-              String s = ship.getFleetMember().getShipName();
-              if(s == null) continue;
-              if(ship.getLocation().getY() > 9000 && !ship.getCustomData().containsKey(U.DELIMITER)) {
-                  ship.setCustomData(U.DELIMITER, 1);
-                  ship.getMutableStats().getAcceleration().modifyFlat("BOO!", 500);
-                  ship.getMutableStats().getDeceleration().modifyFlat("BOO!", 500);
-                  ship.getMutableStats().getMaxSpeed().modifyFlat("BOO!", 450);
-              } else if(ship.getLocation().getY() < 9000 && ship.getCustomData().containsKey(U.DELIMITER)) {
-                  log(s + " has entered field, position now " + ship.getLocation().toString());
-                  ship.getMutableStats().getAcceleration().unmodify("BOO!");
-                  ship.getMutableStats().getDeceleration().unmodify("BOO!");
-                  ship.getMutableStats().getMaxSpeed().unmodify("BOO!");
-                  ship.getVelocity().set(0, 0);
-                  ship.removeCustomData(U.DELIMITER);
-              }              
-              if (ship.isRetreating() && !ship.getCustomData().containsKey("NORETREAT")) {
-                  log(s + " NO RETREAT!");
-                  ship.setCustomData("NORETREAT", 1);
-                  ship.setFixedLocation(new Vector2f(ship.getLocation().getX(), ship.getLocation().getY() - 9000));
-              }
-              // TODO end remove before release section
-              
           }
-            
-          case 100 -> {
-              // TODO remove before release!
-              // delete hulks for better performance in huge battles
-              // log("Ship killed at position " + ship.getLocation().toString());
-              engine.removeEntity(ship);
-          }
-            
           
         }
         
       }
-      delta = 0;
+      
+      delta--;
+      
     }
 
   }
