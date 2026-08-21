@@ -106,6 +106,7 @@ public class FleetSummaryIntel extends BaseFleetHistoryIntelPlugin {
     try {
 
       float topBannerHeight = 25;
+      float VERTICAL_SPACING = 8;
 
       String viewMode = (String) pd.get(U.FLEET_HISTORY_VIEW_MODE);
 
@@ -151,13 +152,13 @@ public class FleetSummaryIntel extends BaseFleetHistoryIntelPlugin {
 
       TooltipMakerAPI spacer = panel.createUIElement(width, 1, false);
       spacer.addButton("", "", Color.decode("#222222"), Color.decode("#222222"), width * 0.94f, 1, 0);
-      panel.addUIElement(spacer).belowLeft(shipViewBtn, 15);
+      panel.addUIElement(spacer).belowLeft(shipViewBtn, VERTICAL_SPACING);
 
       TooltipMakerAPI container = null;
       CustomPanelAPI content = null;
       if (pd.containsKey(U.FLEET_HISTORY_CONFIG)) {
         TooltipMakerAPI configSection = createConfigSection(panel, width * 0.956f, height - topBannerHeight - 45);
-        panel.addUIElement(configSection).belowMid(spacer, 15);
+        panel.addUIElement(configSection).belowMid(spacer, VERTICAL_SPACING);
       } else {
 
         // use full screen width for battles summary - lots of table columns
@@ -173,7 +174,7 @@ public class FleetSummaryIntel extends BaseFleetHistoryIntelPlugin {
         }
 
         container.addCustom(content, 0);
-        panel.addUIElement(container).belowLeft(spacer, 15).setXAlignOffset(0);
+        panel.addUIElement(container).belowLeft(spacer, VERTICAL_SPACING).setXAlignOffset(0);
 
       }
     } catch (NumberFormatException e) {
@@ -199,6 +200,10 @@ public class FleetSummaryIntel extends BaseFleetHistoryIntelPlugin {
 
   private TooltipMakerAPI createTableHeader(CustomPanelAPI panel, String prefix, String label, boolean isSortMode, float width) {
     return createTableHeader(panel, prefix, label, isSortMode, width, TABLE_HEADER_HEIGHT);
+  }
+  
+  private int getMaxRowsPerPage() {
+    return U.isPagingEnabled() ? MAX_ROWS_PER_PAGE : 1000000;
   }
 
   private CustomPanelAPI createShipSummary(CustomPanelAPI panel, float width, float height) {
@@ -250,10 +255,10 @@ public class FleetSummaryIntel extends BaseFleetHistoryIntelPlugin {
     CustomPanelAPI t = panel.createCustomPanel(width, 0, null);
     CustomPanelAPI previousRow = null;
     
-    if(shipLogs.length > MAX_ROWS_PER_PAGE) {
+    if(shipLogs.length > getMaxRowsPerPage()) {
       
       CustomPanelAPI navButtons = t.createCustomPanel(width, 0, null);
-      int numPages = (shipLogs.length / MAX_ROWS_PER_PAGE) - (shipLogs.length % MAX_ROWS_PER_PAGE == 0 ? 1 : 0);
+      int numPages = (shipLogs.length / getMaxRowsPerPage()) - (shipLogs.length % getMaxRowsPerPage() == 0 ? 1 : 0);
       int currPage = getPageNumber(CURRENT_SHIP_PAGE);
       TooltipMakerAPI prevElem = null;
 
@@ -317,10 +322,10 @@ public class FleetSummaryIntel extends BaseFleetHistoryIntelPlugin {
     
     int displayedShips = 0;
 
-    for (int i = 0; i < MAX_ROWS_PER_PAGE; i++) {
+    for (int i = 0; i < getMaxRowsPerPage(); i++) {
       
       int pageNumber = getPageNumber(CURRENT_SHIP_PAGE);
-      int index = (shipLogs.length - 1) - (pageNumber * MAX_ROWS_PER_PAGE) - i;
+      int index = (shipLogs.length - 1) - (pageNumber * getMaxRowsPerPage()) - i;
       if (index < 0 || index >= shipLogs.length) {
         break;
       }
@@ -672,10 +677,10 @@ public class FleetSummaryIntel extends BaseFleetHistoryIntelPlugin {
     CustomPanelAPI t = panel.createCustomPanel(width, 0, null);
     CustomPanelAPI previousRow = null;
     
-    if(officerLogs.length > MAX_ROWS_PER_PAGE) {
+    if(officerLogs.length > getMaxRowsPerPage()) {
       
       CustomPanelAPI navButtons = t.createCustomPanel(width, 0, null);
-      int numPages = (officerLogs.length / MAX_ROWS_PER_PAGE) - (officerLogs.length % MAX_ROWS_PER_PAGE == 0 ? 1 : 0);
+      int numPages = (officerLogs.length / getMaxRowsPerPage()) - (officerLogs.length % getMaxRowsPerPage() == 0 ? 1 : 0);
       int currPage = getPageNumber(CURRENT_OFFICER_PAGE);
       TooltipMakerAPI prevElem = null;
 
@@ -744,10 +749,10 @@ public class FleetSummaryIntel extends BaseFleetHistoryIntelPlugin {
     
     int displayedOfficers = 0;
     
-    for (int i = 0; i < MAX_ROWS_PER_PAGE; i++) {
+    for (int i = 0; i < getMaxRowsPerPage(); i++) {
       
       int pageNumber = getPageNumber(CURRENT_OFFICER_PAGE);
-      int index = (officerLogs.length - 1) - (pageNumber * MAX_ROWS_PER_PAGE) - i;
+      int index = (officerLogs.length - 1) - (pageNumber * getMaxRowsPerPage()) - i;
       if (index < 0 || index >= officerLogs.length) {
         break;
       }
@@ -812,6 +817,8 @@ public class FleetSummaryIntel extends BaseFleetHistoryIntelPlugin {
 
   private TooltipMakerAPI createConfigSection(CustomPanelAPI panel, float width, float height) {
 
+    int VERTICAL_SPACING = 8;
+
     HashMap<String, Object> pd = U.getPersistentData();
 
     TooltipMakerAPI t = panel.createUIElement(width, height, true);
@@ -827,7 +834,7 @@ public class FleetSummaryIntel extends BaseFleetHistoryIntelPlugin {
     battleSizeLabel.setParaSmallInsignia();
     battleSizeLabel.setParaFontColor(Misc.getBasePlayerColor());
     battleSizeLabel.addPara(U.i18n("battle_size"), 3);
-    container.addUIElement(battleSizeLabel).belowLeft(battleFiltersHeader, 10).setXAlignOffset(25);
+    container.addUIElement(battleSizeLabel).belowLeft(battleFiltersHeader, VERTICAL_SPACING).setXAlignOffset(25);
 
     TooltipMakerAPI prevComponent = battleSizeLabel;
     ButtonAPI btn = null;
@@ -857,7 +864,7 @@ public class FleetSummaryIntel extends BaseFleetHistoryIntelPlugin {
     battleAgeLabel.setParaSmallInsignia();
     battleAgeLabel.setParaFontColor(Misc.getBasePlayerColor());
     battleAgeLabel.addPara(U.i18n("days_ago"), 3);
-    container.addUIElement(battleAgeLabel).belowLeft(battleSizeDesc, 15);
+    container.addUIElement(battleAgeLabel).belowLeft(battleSizeDesc, VERTICAL_SPACING);
     prevComponent = battleAgeLabel;
 
     int[] battleAges = {0, 7, 14, 30, 90, 180, 365, 730};
@@ -890,7 +897,7 @@ public class FleetSummaryIntel extends BaseFleetHistoryIntelPlugin {
             15, 15, 5
     );
     btn.setChecked(pd.containsKey(U.FLEET_HISTORY_HIDE_COMMANDERS));
-    container.addUIElement(hideCommandersCheckbox).belowLeft(battleAgeDesc, 15);
+    container.addUIElement(hideCommandersCheckbox).belowLeft(battleAgeDesc, VERTICAL_SPACING);
     TooltipMakerAPI hideCommandersDesc = container.createUIElement(width, 25, false);
     hideCommandersDesc.addPara(U.i18n("hide_commanders"), 5);
     container.addUIElement(hideCommandersDesc).rightOfMid(hideCommandersCheckbox, 5);
@@ -904,7 +911,7 @@ public class FleetSummaryIntel extends BaseFleetHistoryIntelPlugin {
             15, 15, 5
     );
     btn.setChecked(pd.containsKey(U.FLEET_HISTORY_HIDE_DEPLOYED));
-    container.addUIElement(hideDeployedCheckbox).belowLeft(hideCommandersCheckbox, 0);
+    container.addUIElement(hideDeployedCheckbox).belowLeft(hideCommandersCheckbox, -5);
     TooltipMakerAPI hideDeployedDesc = container.createUIElement(width, 25, false);
     hideDeployedDesc.addPara(U.i18n("hide_deployed"), 5);
     container.addUIElement(hideDeployedDesc).rightOfMid(hideDeployedCheckbox, 5);
@@ -922,26 +929,26 @@ public class FleetSummaryIntel extends BaseFleetHistoryIntelPlugin {
             new ButtonTooltip(U.i18n("notify_battles_desc"), 350),
             TooltipMakerAPI.TooltipLocation.BELOW
     );
-    container.addUIElement(notifyBattlesCheckbox).belowLeft(hideDeployedCheckbox, 0);
+    container.addUIElement(notifyBattlesCheckbox).belowLeft(hideDeployedCheckbox, -5);
     TooltipMakerAPI notifyBattlesDesc = container.createUIElement(width, 25, false);
     notifyBattlesDesc.addPara(U.i18n("notify_battles"), 5);
     container.addUIElement(notifyBattlesDesc).rightOfMid(notifyBattlesCheckbox, 5);
     
     TooltipMakerAPI spacer = container.createUIElement(width, 1, false);
     spacer.addButton("", "", Color.decode("#222222"), Color.decode("#222222"), width * 0.94f, 1, 0);
-    container.addUIElement(spacer).belowLeft(notifyBattlesDesc, 20).setXAlignOffset(-65);
+    container.addUIElement(spacer).belowLeft(notifyBattlesDesc, VERTICAL_SPACING).setXAlignOffset(-65);
 
     TooltipMakerAPI shipFiltersHeader = container.createUIElement(450, 25, false);
     shipFiltersHeader.setParaInsigniaVeryLarge();
     shipFiltersHeader.setParaFontColor(Misc.getBasePlayerColor());
     shipFiltersHeader.addPara(U.i18n("ship_officer_settings_header"), 3);
-    container.addUIElement(shipFiltersHeader).belowLeft(spacer, 15).setXAlignOffset(15);
+    container.addUIElement(shipFiltersHeader).belowLeft(spacer, VERTICAL_SPACING).setXAlignOffset(15);
 
     TooltipMakerAPI shipBattleCountLabel = container.createUIElement(150, 25, false);
     shipBattleCountLabel.setParaSmallInsignia();
     shipBattleCountLabel.setParaFontColor(Misc.getBasePlayerColor());
     shipBattleCountLabel.addPara(U.i18n("battles_fought"), 3);
-    container.addUIElement(shipBattleCountLabel).belowLeft(shipFiltersHeader, 15).setXAlignOffset(20);
+    container.addUIElement(shipBattleCountLabel).belowLeft(shipFiltersHeader, VERTICAL_SPACING).setXAlignOffset(20);
     prevComponent = shipBattleCountLabel;
 
     int[] shipBattleCounts = {0, 1, 5, 10, 25, 50, 100, 200};
@@ -969,7 +976,7 @@ public class FleetSummaryIntel extends BaseFleetHistoryIntelPlugin {
     shipScoreLabel.setParaSmallInsignia();
     shipScoreLabel.setParaFontColor(Misc.getBasePlayerColor());
     shipScoreLabel.addPara(U.i18n("fleet_point_score"), 3);
-    container.addUIElement(shipScoreLabel).belowLeft(shipBattleCountDesc, 15);
+    container.addUIElement(shipScoreLabel).belowLeft(shipBattleCountDesc, VERTICAL_SPACING);
     prevComponent = shipScoreLabel;
 
     int[] shipScores = {0, 1, 10, 50, 100, 200, 500, 1000};
@@ -997,7 +1004,7 @@ public class FleetSummaryIntel extends BaseFleetHistoryIntelPlugin {
     killDisplayLabel.setParaSmallInsignia();
     killDisplayLabel.setParaFontColor(Misc.getBasePlayerColor());
     killDisplayLabel.addPara(U.i18n("kill_count_display"), 3);
-    container.addUIElement(killDisplayLabel).belowLeft(shipScoreDesc, 15);
+    container.addUIElement(killDisplayLabel).belowLeft(shipScoreDesc, VERTICAL_SPACING);
     prevComponent = killDisplayLabel;
 
     String[] killDisplays = {U.KILL_DISPLAY_ICONS, U.KILL_DISPLAY_TABLE, U.KILL_DISPLAY_NONE};
@@ -1034,14 +1041,42 @@ public class FleetSummaryIntel extends BaseFleetHistoryIntelPlugin {
             new ButtonTooltip(U.i18n("hide_inactive_desc"), 350),
             TooltipMakerAPI.TooltipLocation.BELOW
     );
-    container.addUIElement(hideInactiveCheckbox).belowLeft(killDisplayDesc, 15);
+    container.addUIElement(hideInactiveCheckbox).belowLeft(killDisplayDesc, VERTICAL_SPACING);
     TooltipMakerAPI hideInactiveDesc = container.createUIElement(width, 25, false);
     hideInactiveDesc.addPara(U.i18n("hide_inactive"), 5);
     container.addUIElement(hideInactiveDesc).rightOfMid(hideInactiveCheckbox, 5);
 
     spacer = container.createUIElement(width, 1, false);
     spacer.addButton("", "", Color.decode("#222222"), Color.decode("#222222"), width * 0.94f, 1, 0);
-    container.addUIElement(spacer).belowLeft(hideInactiveDesc, 25).setXAlignOffset(-70);
+    container.addUIElement(spacer).belowLeft(hideInactiveDesc, VERTICAL_SPACING).setXAlignOffset(-70);
+    
+    TooltipMakerAPI logSettingsHeader = container.createUIElement(450, 25, false);
+    logSettingsHeader.setParaInsigniaVeryLarge();
+    logSettingsHeader.setParaFontColor(Misc.getBasePlayerColor());
+    logSettingsHeader.addPara(U.i18n("log_settings_header"), 3);
+    container.addUIElement(logSettingsHeader).belowLeft(spacer, VERTICAL_SPACING).setXAlignOffset(25);
+
+    TooltipMakerAPI enablePagingCheckbox = container.createUIElement(25, 25, false);
+    btn = enablePagingCheckbox.addAreaCheckbox(
+            " ", U.FLEET_HISTORY_ENABLE_PAGING,
+            Misc.getBasePlayerColor(),
+            Misc.getDarkPlayerColor(),
+            Misc.getBrightPlayerColor(),
+            15, 15, 5
+    );
+    btn.setChecked(U.isPagingEnabled());
+    enablePagingCheckbox.addTooltipToPrevious(
+            new ButtonTooltip(U.i18n("enable_paging_desc"), 350),
+            TooltipMakerAPI.TooltipLocation.BELOW
+    );
+    container.addUIElement(enablePagingCheckbox).belowLeft(logSettingsHeader, VERTICAL_SPACING).setXAlignOffset(15);
+    TooltipMakerAPI enablePagingDesc = container.createUIElement(width, 25, false);
+    enablePagingDesc.addPara(U.i18n("enable_paging"), 5);
+    container.addUIElement(enablePagingDesc).rightOfMid(enablePagingCheckbox, 5);
+
+    spacer = container.createUIElement(width, 1, false);
+    spacer.addButton("", "", Color.decode("#222222"), Color.decode("#222222"), width * 0.94f, 1, 0);
+    container.addUIElement(spacer).belowLeft(enablePagingDesc, VERTICAL_SPACING).setXAlignOffset(-70);
 
 //    TooltipMakerAPI exportDataBtn = container.createUIElement(150, 25, false);
 //    exportDataBtn.addAreaCheckbox(U.i18n("export_data"), U.FLEET_HISTORY_EXPORT_DATA, Misc.getBasePlayerColor(), Misc.getDarkPlayerColor(), Misc.getBrightPlayerColor(), 150, 25, 0);
@@ -1053,7 +1088,7 @@ public class FleetSummaryIntel extends BaseFleetHistoryIntelPlugin {
     TooltipMakerAPI clearDataBtn = container.createUIElement(150, 25, false);
     clearDataBtn.addAreaCheckbox(U.i18n("clear_all_data"), U.FLEET_HISTORY_CLEAR_ALL, Misc.getNegativeHighlightColor(), Color.decode("#442200"), Misc.getNegativeHighlightColor(), 150, 25, 0);
 //    container.addUIElement(clearDataBtn).belowLeft(exportDataBtn, 25);
-    container.addUIElement(clearDataBtn).belowLeft(spacer, 25).setXAlignOffset(15);
+    container.addUIElement(clearDataBtn).belowLeft(spacer, 15).setXAlignOffset(15);
     TooltipMakerAPI clearDataInfo = container.createUIElement(width * 0.75f, 0, false);
     clearDataInfo.addPara(U.i18n("clear_all_data_desc"), 0);
     container.addUIElement(clearDataInfo).rightOfMid(clearDataBtn, 15);
@@ -1085,7 +1120,7 @@ public class FleetSummaryIntel extends BaseFleetHistoryIntelPlugin {
         prompt.addPara(U.i18n("export_success_2"), 0);
         break;
       case U.FLEET_HISTORY_CLEAR_ALL:
-        prompt.addPara(U.i18n("clear_prompt_1"), 0, Misc.getHighlightColor(), U.i18n("clear_prompt_2"));
+        prompt.addPara(U.i18n("clear_prompt_1"), 0, Misc.getNegativeHighlightColor(), U.i18n("clear_prompt_2"));
         prompt.addPara("", 0);
         prompt.addPara(U.i18n("clear_prompt_3"), 0);
         break;
@@ -1105,7 +1140,7 @@ public class FleetSummaryIntel extends BaseFleetHistoryIntelPlugin {
   
   @Override
   public void buttonPressConfirmed(Object id, IntelUIAPI ui) {
-
+    
     if (!(id instanceof String)) {
       return;
     }
@@ -1259,6 +1294,9 @@ public class FleetSummaryIntel extends BaseFleetHistoryIntelPlugin {
               pd.remove(buttonId);
             }
             pd.put(U.FLEET_HISTORY_VIEW_MODE, U.FLEET_HISTORY_VIEW_SHIPS);
+          }
+          case U.FLEET_HISTORY_ENABLE_PAGING -> {
+            pd.put(buttonId, (U.isPagingEnabled() ? 0 : 1));
           }
         }
       }

@@ -18,6 +18,7 @@ public class ShipTooltip implements TooltipMakerAPI.TooltipCreator {
   private transient int kills = -1;
   private transient int assists = -1;
   private transient int fp = -1;
+  private transient int deployTime = -1;
 
   public ShipTooltip(BattleRecordShipInfo info, long timestamp) {
     this.info = info;
@@ -34,7 +35,7 @@ public class ShipTooltip implements TooltipMakerAPI.TooltipCreator {
     ShipHullSpecAPI hull = info.getHullSpec();
     String hullName = U.isStation(hull) ? hull.getHullName() : hull.getNameWithDesignationWithDashClass();
     // 30 = max length of kill count string
-    return Math.max(30, Math.max((info.getName() == null ? 0 : info.getName().length()), hullName.length())) * 8;
+    return Math.max(30, Math.max((info.getName() == null ? 0 : info.getName().length()), hullName.length())) * 9;
   }
 
   @Override
@@ -49,7 +50,7 @@ public class ShipTooltip implements TooltipMakerAPI.TooltipCreator {
     tooltip.addPara(isStation ? hull.getHullName() : hull.getNameWithDesignationWithDashClass(), 0);
     
     // cache ship battle stats, so that we don't have to retrieve them every frame
-    if(kills < 0 && assists < 0 && fp < 0) {
+    if(kills < 0 && assists < 0 && fp < 0 && deployTime < 0) {
       ShipLog s = U.getShipLogFor(info.getId());
       if (s != null) {
         ShipLogEntry logEntry = null;
@@ -66,11 +67,13 @@ public class ShipTooltip implements TooltipMakerAPI.TooltipCreator {
             kills = sbr.getKills();
             assists = sbr.getAssists();
           }
+          if(sbr.deployTime > 0) {
+            deployTime = sbr.deployTime;
+          }
         }
       }
     }
-
-
+    
     if (fp > 0) {
 
       String str = "";
@@ -78,32 +81,47 @@ public class ShipTooltip implements TooltipMakerAPI.TooltipCreator {
 
       if(kills > 0 && assists > 0) {
         str = String.format(
-                "%s, %s %s",
+                "%s, %s %s %s",
                 U.i18n(kills == 1 ? "kill_count" : "kills_count"),
                 U.i18n(assists == 1 ? "assist_count" : "assists_count"),
-                U.i18n("fp_count")
+                U.i18n("fp_count"),
+                U.i18n("deploy_time")
         );
         params.add(kills + "");
         params.add(assists + "");
+        params.add(fp + "");
+        params.add(U.durationString(deployTime));
       } else if (kills > 0) {
         str = String.format(
-                "%s %s",
+                "%s %s %s",
                 U.i18n(kills == 1 ? "kill_count" : "kills_count"),
-                U.i18n("fp_count")
+                U.i18n("fp_count"),
+                U.i18n("deploy_time")
         );
         params.add(kills + "");
+        params.add(fp + "");
+        params.add(U.durationString(deployTime));
       } else if (assists > 0) {
         str = String.format(
-                "%s %s",
+                "%s %s %s",
                 U.i18n(assists == 1 ? "assist_count" : "assists_count"),
-                U.i18n("fp_count")
+                U.i18n("fp_count"),
+                U.i18n("deploy_time")
         );
         params.add(assists + "");
+        params.add(fp + "");
+        params.add(U.durationString(deployTime));
       }
-      params.add(fp + "");
 
       tooltip.addPara(str, 0, Misc.getHighlightColor(), params.toArray(String[]::new));
       
+    } else if(deployTime > 0) {
+      tooltip.addPara(
+              U.i18n("deploy_time_standalone"),
+              0,
+              Misc.getHighlightColor(), 
+              U.durationString(deployTime)
+      );
     }
     
     if (ShipBattleResult.isLost(info.status)) {

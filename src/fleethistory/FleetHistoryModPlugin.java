@@ -96,6 +96,9 @@ public class FleetHistoryModPlugin extends BaseModPlugin {
     if (!pd.containsKey(U.FLEET_HISTORY_EVENT_SORT_ORDER)) {
       pd.put(U.FLEET_HISTORY_EVENT_SORT_ORDER, U.SORT_BY_DATE);
     }
+    if (!pd.containsKey(U.FLEET_HISTORY_ENABLE_PAGING)) {
+      pd.put(U.FLEET_HISTORY_ENABLE_PAGING, 1);
+    }
 
   }
   

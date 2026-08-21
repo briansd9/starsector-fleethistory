@@ -209,6 +209,8 @@ public class ShipBattleRecord implements ShipEvent {
       renderKillTable(killTablePanel, width, height);
       panel.addComponent(killTablePanel).belowLeft(t, 0);
       panel.getPosition().setSize(width, panel.getPosition().getHeight() + killTablePanel.getPosition().getHeight() + 25);
+    } else {
+      panel.getPosition().setSize(width, panel.getPosition().getHeight() + 25);
     }
 
   }
@@ -262,42 +264,49 @@ public class ShipBattleRecord implements ShipEvent {
     int assistCount = this.getAssists();
     int fleetPointCount = this.getFleetPoints();
 
-    if (killCount == 0 && assistCount == 0) {
-      return;
-    }
-
     if (killCount > 0 && assistCount > 0) {
-      String killStats = String.format(
-              "%s, %s %s",
+      String statString = String.format(
+              "%s, %s %s %s",
               U.i18n(killCount == 1 ? "kill_count" : "kills_count"),
               U.i18n(assistCount == 1 ? "assist_count" : "assists_count"),
-              U.i18n("fp_count")              
+              U.i18n("fp_count"),
+              U.i18n("deploy_time")
       );
       t.addPara(
-              killStats,
+              statString,
               U.LINE_SPACING,
-              new Color[]{Misc.getNegativeHighlightColor(), Misc.getHighlightColor(), Misc.getBrightPlayerColor()},
+              new Color[]{Misc.getNegativeHighlightColor(), Misc.getHighlightColor(), Misc.getBrightPlayerColor(), Misc.getBrightPlayerColor()},
               killCount + "",
               assistCount + "",
-              fleetPointCount + ""
+              fleetPointCount + "",
+              U.durationString(this.deployTime)
       );
-    } else if (killCount > 0) {
-      String killStats = String.format("%s %s", U.i18n(killCount == 1 ? "kill_count" : "kills_count"), U.i18n("fp_count"));
+    } else if (killCount > 0 || assistCount > 0) {
+      int statCount = (killCount > 0 ? killCount : assistCount);
+      String statString = String.format(
+              "%s %s %s", 
+              U.i18n(
+                      killCount > 0 ? 
+                              (killCount == 1 ? "kill_count" : "kills_count") : 
+                              (assistCount == 1 ? "assist_count" : "assists_count")
+              ),
+              U.i18n("fp_count"),
+              U.i18n("deploy_time")
+      );
       t.addPara(
-              killStats,
+              statString,
               U.LINE_SPACING,
-              new Color[]{Misc.getNegativeHighlightColor(), Misc.getBrightPlayerColor()},
-              killCount + "",
-              fleetPointCount + ""
+              new Color[]{Misc.getNegativeHighlightColor(), Misc.getBrightPlayerColor(), Misc.getBrightPlayerColor()},
+              statCount + "",
+              fleetPointCount + "",
+              U.durationString(this.deployTime)
       );
     } else {
-      String killStats = String.format("%s %s", U.i18n(assistCount == 1 ? "assist_count" : "assists_count"), U.i18n("fp_count"));
       t.addPara(
-              killStats,
+              U.i18n("deploy_time_standalone"),
               U.LINE_SPACING,
-              new Color[]{Misc.getHighlightColor(), Misc.getBrightPlayerColor()},
-              assistCount + "",
-              fleetPointCount + ""
+              new Color[]{Misc.getBrightPlayerColor()},
+              U.durationString(this.deployTime)
       );
     }
   }

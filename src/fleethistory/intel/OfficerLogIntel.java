@@ -304,14 +304,14 @@ public class OfficerLogIntel extends BaseFleetHistoryIntelPlugin {
       }
 
       // add navigation buttons if needed
-      if (o.getEntries().size() > U.MAX_EVENTS_PER_PAGE && U.BATTLE_LOG.equals(this.getViewMode())) {
+      if (o.getEntries().size() > U.getMaxEventsPerPage() && U.BATTLE_LOG.equals(this.getViewMode())) {
 
         TooltipMakerAPI spacer = panel.createUIElement(5, 25, false);
         spacer.addPara("", 0);
         panel.addUIElement(spacer).belowLeft(officerImg, 15).setXAlignOffset(navButtonsPadding);
 
         TooltipMakerAPI prevBtn = spacer;
-        int numPages = (int) Math.ceil(o.getEntries().size() * 1.0f / U.MAX_EVENTS_PER_PAGE) - (o.getEntries().size() % U.MAX_EVENTS_PER_PAGE == 0 ? 1 : 0);
+        int numPages = (int) Math.ceil(o.getEntries().size() * 1.0f / U.getMaxEventsPerPage()) - (o.getEntries().size() % U.getMaxEventsPerPage() == 0 ? 1 : 0);
         int currPage = getPageNumber();
         for (int i = 0; i < numPages; i++) {
           TooltipMakerAPI pageBtn = panel.createUIElement(25, 25, false);
@@ -369,9 +369,9 @@ public class OfficerLogIntel extends BaseFleetHistoryIntelPlugin {
     );
     
     int pageNumber = getPageNumber();
-    for (int i = 0; i < U.MAX_EVENTS_PER_PAGE; i++) {
+    for (int i = 0; i < U.getMaxEventsPerPage(); i++) {
 
-      int index = (eventList.size() - 1) - (pageNumber * U.MAX_EVENTS_PER_PAGE) - i;
+      int index = (eventList.size() - 1) - (pageNumber * U.getMaxEventsPerPage()) - i;
       if (index < 0 || index >= eventList.size()) {
         break;
       }
@@ -418,8 +418,7 @@ public class OfficerLogIntel extends BaseFleetHistoryIntelPlugin {
     final HashMap<String, Integer> fleetPoints = new HashMap<>();
 
     for (OfficerLogEntry e : o.getEntries()) {
-      if (e instanceof OfficerBattleEntry) {
-        OfficerBattleEntry br = (OfficerBattleEntry) e;
+      if (e instanceof OfficerBattleEntry br) {
         for (ShipBattleRecordStats s : br.getBattleRecord().getStats()) {
 
           String hullId = s.getHullId();

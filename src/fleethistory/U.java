@@ -76,6 +76,7 @@ public class U {
   public static final String FLEET_HISTORY_HIDE_DEPLOYED = "FLEET_HISTORY_HIDE_DEPLOYED";
   public static final String FLEET_HISTORY_NOTIFY_BATTLES = "FLEET_HISTORY_NOTIFY_BATTLES";
   public static final String FLEET_HISTORY_HIDE_INACTIVE = "FLEET_HISTORY_HIDE_INACTIVE";
+  public static final String FLEET_HISTORY_ENABLE_PAGING = "FLEET_HISTORY_ENABLE_PAGING";
   public static final String FLEET_HISTORY_CLEAR_ALL = "FLEET_HISTORY_CLEAR_ALL";
   public static final String FLEET_HISTORY_EXPORT_DATA = "FLEET_HISTORY_EXPORT_DATA";
   
@@ -110,6 +111,10 @@ public class U {
       Global.getSector().getPersistentData().put(DATA_KEY, new HashMap<String, Object>());
     }
     return (HashMap<String, Object>) Global.getSector().getPersistentData().get(DATA_KEY);
+  }
+  
+  public static int getMaxEventsPerPage() {
+    return U.isPagingEnabled() ? MAX_EVENTS_PER_PAGE : 1000000;
   }
 
 //  // use for: captain portraits, hull ids
@@ -309,6 +314,14 @@ public class U {
 
     return U.encodeNum(nextKey);
 
+  }
+  
+  public static boolean isPagingEnabled() {
+    HashMap<String, Object> pd = U.getPersistentData();
+    if(!pd.containsKey(FLEET_HISTORY_ENABLE_PAGING)) {
+      return false;
+    }
+    return (1 == (int)pd.get(FLEET_HISTORY_ENABLE_PAGING));
   }
 
   public static boolean isStation(ShipHullSpecAPI hull) {

@@ -539,9 +539,9 @@ public class ShipLogIntel extends BaseFleetHistoryIntelPlugin {
 
     TooltipMakerAPI prevElem = spacer;
     
-    if (shipLog.events.size() > U.MAX_EVENTS_PER_PAGE) {
+    if (shipLog.events.size() > U.getMaxEventsPerPage()) {
       
-      int numPages = (shipLog.events.size() / U.MAX_EVENTS_PER_PAGE) - (shipLog.events.size() % U.MAX_EVENTS_PER_PAGE == 0 ? 1 : 0);
+      int numPages = (shipLog.events.size() / U.getMaxEventsPerPage()) - (shipLog.events.size() % U.getMaxEventsPerPage() == 0 ? 1 : 0);
       int currPage = getPageNumber();
 
       for (int i = 0; i <= numPages; i++) {
@@ -586,9 +586,9 @@ public class ShipLogIntel extends BaseFleetHistoryIntelPlugin {
     int pageNumber = getPageNumber();
     float dateWidth = 100f;
 
-    for (int i = 0; i < U.MAX_EVENTS_PER_PAGE; i++) {
+    for (int i = 0; i < U.getMaxEventsPerPage(); i++) {
       
-      int index = (eventList.size() - 1) - (pageNumber * U.MAX_EVENTS_PER_PAGE) - i;
+      int index = (eventList.size() - 1) - (pageNumber * U.getMaxEventsPerPage()) - i;
       if (index < 0 || index >= eventList.size()) {
         break;
       }
