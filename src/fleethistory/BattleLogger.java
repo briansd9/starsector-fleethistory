@@ -10,7 +10,6 @@ import java.util.HashMap;
 import java.util.List;
 import fleethistory.shipevents.ShipBattleRecord;
 import fleethistory.types.BattleRecordFighterCount;
-import org.lwjgl.util.vector.Vector2f;
 
 public class BattleLogger extends BaseEveryFrameCombatPlugin {
 
@@ -50,13 +49,17 @@ public class BattleLogger extends BaseEveryFrameCombatPlugin {
   @Override
   public void advance(float amount, List<InputEventAPI> events) {
 
-    if (engine == null || engine.isPaused()) {
+    if (engine == null || engine.isPaused() || !engine.isInCampaign()) {
       return;
     }
-
+    
     delta += amount;
     
     if (delta > 1) {
+      
+      if(delta > 10) {
+        log("Unusually large delta of " + delta + " in combat engine");
+      }
 
       HashMap<String, Object> pd = U.getPersistentData();
       
@@ -76,7 +79,6 @@ public class BattleLogger extends BaseEveryFrameCombatPlugin {
             // owner 100 = hulk; fighter shot down
             BattleRecordFighterCount f = fighterCounts[ship.getOriginalOwner()];
             f.logLost(ship.getWing().getSpec().getId());
-            // log(String.format("KILLED: %s (%s) on side %d", ship.getId(), ship.getWing().getSpec().getId(), ship.getOriginalOwner()));
           } else {
             // not yet tracked - a newly launched fighter
             if(!ship.getCustomData().containsKey("TRACKED")) {
